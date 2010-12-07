@@ -1,0 +1,1 @@
+DROP TABLE `content_image_popup`;
