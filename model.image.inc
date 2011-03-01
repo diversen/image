@@ -22,18 +22,6 @@ class contentImage extends contentFile {
         $options['filename'] = 'file';
         $options['maxsize'] = $this->maxsize;
 
-        /*
-        // scale tmp image to tmp image
-        $scale_image_width = get_module_ini('scale_image_width_big');
-        $this->scaleImage($_FILES['file']['tmp_name'], $_FILES['file']['tmp_name'], $scale_image_width);
-
-        $values['file'] = uploadBlob::getFP($options);
-        $values['title'] = 'big-' . $_FILES['file']['name'];
-        $values['mimetype'] = $_FILES['file']['type'];
-
-        $bind = array('file' => PDO::PARAM_LOB);
-        $res = $this->insert($this->fileTable, $values, $bind);
-        */
         $scale_image_width = get_module_ini('scale_image_width');
         $this->scaleImage($_FILES['file']['tmp_name'], $_FILES['file']['tmp_name'], $scale_image_width);
 
