@@ -4,7 +4,7 @@
 include_module ('content/article');
 include_module ('files');
 
-class contentImage extends contentFile {
+class image extends files {
     //public static $fileTable = 'content_image';
     //public static $basePath = '/content/image';
 
