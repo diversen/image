@@ -24,6 +24,7 @@ class image extends db {
     public static $options = array();
     public static $path = '/image';
     public static $fileTable = 'image';
+    public static $scaleWidth;
 
     // {{{ function __construct()
     /**
@@ -33,6 +34,15 @@ class image extends db {
     function __construct($options = null){
         $uri = URI::getInstance();
         self::$options = $options;
+        self::$scaleWidth = get_module_ini('image_scale_width');
+    }
+
+    public static function init (){
+        self::$path = '/image';
+        self::$fileTable = 'image';
+        self::$scaleWidth = get_module_ini('image_scale_width');
+        //parent::__construct($options);
+    
     }
 
     public static function setFileId (){
@@ -93,23 +103,25 @@ class image extends db {
      *
      * @return boolean true on success or false on failure
      */
-    public function insertFile () {
-        $values = $this->prepareToPost();
-        $values['parent_id'] = self::$options['parent_id'];
-        $values['reference'] = self::$options['reference'];
+    public static function insertFile ($options) {
+        $db = new db();
+
+        $values = db::prepareToPost();
+        $values['parent_id'] = $options['parent_id'];
+        $values['reference'] = $options['reference'];
 
         $options['filename'] = 'file';
         $options['maxsize'] = self::$maxsize;
         //$options['allow_mime'] = array("application/x-gzip");
-        $scale_image_width = get_module_ini('image_scale_width');
-        self::scaleImage($_FILES['file']['tmp_name'], $_FILES['file']['tmp_name'], $scale_image_width);
+        echo self::$scaleWidth; 
+        self::scaleImage($_FILES['file']['tmp_name'], $_FILES['file']['tmp_name'], self::$scaleWidth);
 
         $values['file'] = uploadBlob::getFP($options);
         $values['title'] = $_FILES['file']['name'];
         $values['mimetype'] = $_FILES['file']['type'];
 
         $bind = array('file' => PDO::PARAM_LOB);
-        $res = $this->insert(self::$fileTable, $values, $bind);
+        $res = $db->insert(self::$fileTable, $values, $bind);
         return $res;
 
 
@@ -117,7 +129,7 @@ class image extends db {
     }
     // }}}
 
-    private function scaleImage ($image, $thumb, $length){
+    public static function scaleImage ($image, $thumb, $length){
         require_once 'Image/Transform.php';
 
         //create transform driver object
@@ -235,16 +247,16 @@ class image extends db {
         return $str;
     }
     // }}}
-    public static function subModuleInlineContent($options){
-
-        $str = "";
+    static function subModuleInlineContent($options){
+        self::init();
+        $str = '';
         $files = self::getAllFilesInfo($options);
         if (!empty($files)){
             foreach ($files as $key => $val) {
                 $file_url = self::$path . "/download/$val[id]/$val[title]";
                 $str.="<div id=\"content_image\">\n";
                 $options = array (
-                    'width' => get_module_ini('image_scale_width') . "px",
+                    'width' => self::$scaleWidth . "px",
                     'alt' => $val['abstract'],
                     'title' => $val['abstract']
                     );
@@ -319,8 +331,7 @@ class image extends db {
             $options['filename'] = 'file';
             $options['maxsize'] = self::$maxsize;
 
-            $scale_image_width = get_module_ini('image_scale_width');
-            self::scaleImage($_FILES['file']['tmp_name'], $_FILES['file']['tmp_name'], $scale_image_width);
+            self::scaleImage($_FILES['file']['tmp_name'], $_FILES['file']['tmp_name'], self::$scaleWidth);
 
             $values['file'] = uploadBlob::getFP($options);
             $values['title'] = $_FILES['file']['name'];
@@ -332,21 +343,21 @@ class image extends db {
         return $res;
     }
     // }}}
-    public function viewFileFormInsert(){
+    public function viewFileFormInsert($options){
         if (isset($_POST['submit'])){
-            $this->validateInsert();
+            self::validateInsert();
             if (!isset(self::$errors)){
-                $res = $this->insertFile();
+                $res = self::insertFile($options);
                 if ($res){
                     session::setActionMessage(lang::translate('image_file_added'));
-                    $redirect = "Location: " . self::$options['redirect'];
+                    $redirect = "Location: " . $options['redirect'];
                     header($redirect);
                 }
             } else {
                 view_form_errors(self::$errors);
             }
         }
-        $this->viewFileForm('insert');
+        self::viewFileForm('insert');
     }
 
     public function viewFileFormDelete(){
@@ -401,8 +412,8 @@ class image extends db {
             'reference' => $_GET['reference'],
             'redirect' => $_GET['return_url']);
 
-        $image = new image($options);
-        $image->viewFileFormInsert();
+        //$image = new image($options);
+        self::viewFileFormInsert($options);
     }
 
     public static function deleteController () {

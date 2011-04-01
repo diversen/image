@@ -1,4 +1,4 @@
-CREATE TABLE `content_image` (
+CREATE TABLE IF NOT EXISTS `content_image` (
   `id` int(10) NOT NULL AUTO_INCREMENT,
   `parent_id` int(10) NOT NULL,
   `title` varchar (255) NOT NULL,

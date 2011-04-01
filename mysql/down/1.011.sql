@@ -1,1 +1,1 @@
-DROP TABLE `content_image_popup`;
+DROP TABLE IF EXISTS `content_image_popup`;

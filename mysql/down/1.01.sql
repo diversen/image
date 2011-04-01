@@ -1,1 +1,1 @@
-DROP TABLE `content_image`;
+DROP TABLE IF EXISTS `content_image`;
