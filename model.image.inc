@@ -1,10 +1,5 @@
 <?php
 
-/**
- * model file for doing file uploads
- *
- * @package     content
- */
 
 /**
  * @ignore
@@ -27,6 +22,7 @@ class image extends db {
     public static $fileId;
     public static $maxsize = 2000000; // 2 mb max size
     public static $options = array();
+    public static $path = '/image';
     public static $fileTable = 'image';
 
     // {{{ function __construct()
@@ -46,7 +42,7 @@ class image extends db {
     // used when invoking module as submodule.
     public static function subModuleAdminOptionLink ($options){
         $get = http_build_query($options);
-        $url = '/image/add?' . $get;
+        $url = self::$path . '/add?' . $get;
         $title = lang::translate('image_add_image');
         return html::createLink($url, $title);
     }
@@ -202,43 +198,65 @@ class image extends db {
     // }}}
     public static function subModulePreContent ($options){
         $rows = self::getAllFilesInfo($options);
-        return self::displayFiles($rows, $options);
+        if (session::isAdmin()){
+            return self::displayFiles($rows, $options);
+        }
+        return '';
 
     }
     // {{{ displayUserModuleReleases($id, $rows)
     public static function displayFiles($rows, $options){
         $str = "";
-        if (!empty($rows)){
-            $str.= lang::translate('image_attached') . "<br />";
-        }
 
         $get = http_build_query($options);
+        if (session::isAdmin()){
+            $str.= lang::translate('image_attached') . MENU_SUB_SEPARATOR_SEC;
+            $add_str= lang::translate('image_add');
+            $str.= html::createLink(self::$path . "/add?$get", $add_str);
+            $str.= "<br />";
+        }
         foreach ($rows as $key => $val){
             $title = lang::translate('image_download');
             $title.= MENU_SUB_SEPARATOR_SEC;
             $title.= $val['title'];
             
             $options = array ('title' => $val['abstract']); 
-            $str.= html::createLink("/image/download/$val[id]/$val[title]", $title, $options);
-
+            $str.= html::createLink(self::$path . "/download/$val[id]/$val[title]", $title, $options);
 
             if (session::isAdmin()){
                 $str.= MENU_SUB_SEPARATOR_SEC;
-                $str.= html::createLink("/image/edit/$val[id]?$get", lang::translate('files_edit'));
+                $str.= html::createLink(self::$path . "/edit/$val[id]?$get", lang::translate('files_edit'));
                 $str.= MENU_SUB_SEPARATOR;
-                $str.= html::createLink("/image/delete/$val[id]?$get", lang::translate('files_delete'));
+                $str.= html::createLink(self::$path . "/delete/$val[id]?$get", lang::translate('files_delete'));
             }
             $str.= "<br />\n";
-        }
-
-        if (session::isAdmin()){
-            $add_str= lang::translate('image_add');
-            $str.= html::createLink("/image/add?$get", $add_str);
         }
 
         return $str;
     }
     // }}}
+    public static function subModuleInlineContent($options){
+
+        $str = "";
+        $files = self::getAllFilesInfo($options);
+        if (!empty($files)){
+            foreach ($files as $key => $val) {
+                $file_url = self::$path . "/download/$val[id]/$val[title]";
+                $str.="<div id=\"content_image\">\n";
+                $options = array (
+                    'width' => get_module_ini('image_scale_width') . "px",
+                    'alt' => $val['abstract'],
+                    'title' => $val['abstract']
+                    );
+                $str.= html::createImage($file_url, $options);
+                $str.="</div><br />";
+            }
+        }
+        return $str;
+    }
+
+    
+
     // {{{ getModuleReleases($moduleId = null)
     /**
      * method for fetching modules belonging to a user
@@ -298,9 +316,6 @@ class image extends db {
     public function updateFile () {
         $values = $this->prepareToPost();
         if (is_uploaded_file($_FILES['file']['tmp_name']) ){
-            //echo "not upload"; die;
-        //} else {
-            // get a file pointer
             $options['filename'] = 'file';
             $options['maxsize'] = self::$maxsize;
 
@@ -365,5 +380,78 @@ class image extends db {
             }
         }
         $this->viewFileForm('update', self::$fileId);
+    }
+
+    public static function addController (){
+        if (!include_module ($_GET['reference'])){
+            moduleLoader::$status['404'] = true;
+            return;
+        }
+
+        $class = moduleLoader::modulePathToClassName($_GET['reference']);
+        $link = $class::getLinkFromId($_GET['parent_id']);
+
+        $headline = lang::translate('image_add_image') . MENU_SUB_SEPARATOR_SEC . $link;
+        headline_message($headline);
+
+        template::setTitle(lang::translate('image_add_image'));
+
+        $options = array (
+            'parent_id' => $_GET['parent_id'],
+            'reference' => $_GET['reference'],
+            'redirect' => $_GET['return_url']);
+
+        $image = new image($options);
+        $image->viewFileFormInsert();
+    }
+
+    public static function deleteController () {
+        if (!include_module ($_GET['reference'])){
+            moduleLoader::$status['404'] = true;
+            return;
+        }
+
+        $class = moduleLoader::modulePathToClassName($_GET['reference']);
+        $link = $class::getLinkFromId($_GET['parent_id']);
+
+        $headline = lang::translate('image_delete_image') . MENU_SUB_SEPARATOR_SEC . $link;
+        headline_message($headline);
+
+        $options = array (
+            'redirect' => $_GET['return_url']);
+        $image = new image($options);
+
+        image::setFileId();
+        $image->viewFileFormDelete();
+    }
+
+    public static function downloadController (){
+        $image = new image();
+        image::setFileId();
+        $file = $image->getFile();
+
+        header("Content-type: $file[mimetype]");
+        echo $file['file'];
+        die;
+    }
+
+    public static function editController (){
+        if (!include_module ($_GET['reference'])){
+            moduleLoader::$status['404'] = true;
+            return;
+        }
+
+        $class = moduleLoader::modulePathToClassName($_GET['reference']);
+        $link = $class::getLinkFromId($_GET['parent_id']);
+
+        $headline = lang::translate('image_edit_image') . MENU_SUB_SEPARATOR_SEC . $link;
+        headline_message($headline);
+
+        $options = array (
+            'redirect' => $_GET['return_url']);
+
+        image::setFileId();
+        $image = new image($options);
+        $image->viewFileFormUpdate();
     }
 }

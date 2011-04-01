@@ -6,11 +6,5 @@
  * @package     module_system
  */
 
-include_module('image');
-$image = new image();
-image::setFileId();
-$file = $image->getFile();
+image::downloadController ();
 
-header("Content-type: $file[mimetype]");
-echo $file['file'];
-die;

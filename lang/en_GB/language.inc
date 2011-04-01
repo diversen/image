@@ -24,15 +24,15 @@ $_COS_LANG_MODULE['image_delete_caption'] = 'Delete Image';
 $_COS_LANG_MODULE['image_edit_caption'] = 'Edit Image';
 $_COS_LANG_MODULE['image_add_caption'] = 'Add New Image';
 $_COS_LANG_MODULE['image_no_image_specified'] = 'No Image Specified';
-$_COS_LANG_MODULE['image_image_too_big'] = 'Image is to big';
+$_COS_LANG_MODULE['image_file_too_big'] = 'Image is to big';
 
 $_COS_LANG_MODULE['image_attached'] = 'Image';
 $_COS_LANG_MODULE['image_download'] = 'Download';
 
 $_COS_LANG_MODULE['image_add_new'] = 'Add New';
 $_COS_LANG_MODULE['image_add_image'] = 'Add New Image';
-$_COS_LANG_MODULE['image_image_added'] = 'Image Added';
-$_COS_LANG_MODULE['image_image_deleted'] = 'Image Deleted';
-$_COS_LANG_MODULE['image_image_edited'] = 'Image Edited';
+$_COS_LANG_MODULE['image_file_added'] = 'Image Added';
+$_COS_LANG_MODULE['image_file_deleted'] = 'Image Deleted';
+$_COS_LANG_MODULE['image_file_edited'] = 'Image Edited';
 // Translation of Image /home/dennis/www/osnet/modules/image/edit.php
 
