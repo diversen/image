@@ -237,9 +237,9 @@ class image extends db {
 
             if (session::isAdmin()){
                 $str.= MENU_SUB_SEPARATOR_SEC;
-                $str.= html::createLink(self::$path . "/edit/$val[id]?$get", lang::translate('files_edit'));
+                $str.= html::createLink(self::$path . "/edit/$val[id]?$get", lang::translate('image_edit_image'));
                 $str.= MENU_SUB_SEPARATOR;
-                $str.= html::createLink(self::$path . "/delete/$val[id]?$get", lang::translate('files_delete'));
+                $str.= html::createLink(self::$path . "/delete/$val[id]?$get", lang::translate('image_delete_image'));
             }
             $str.= "<br />\n";
         }
