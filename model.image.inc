@@ -68,35 +68,37 @@ class image extends db {
     * @param int       id (if delete or update)
     */
     public function viewFileForm($method, $id = null, $values = array(), $caption = null){
-        $fields_captions =
-            array(
-                'abstract' => lang::translate('image_form_abstract'),
-                'file' => lang::translate('image_form_image'),
-
-        );
-        $fields = array('id', 'abstract', 'file');
-        $tf = new mySqlForm(self::$fileTable, $fields, $values);
-        $tf->setLabels($fields_captions);
-
-        if (isset($id)){
-            if ($method == 'delete'){
-                if (empty($caption)) $caption = lang::translate('image_delete_label');
-            } else {
-                //$fields = array('id', 'abstract', 'file');
-                $tf = new mySqlForm(self::$fileTable, $fields, $values);
-                $tf->setLabels($fields_captions);
-                if (empty($caption)) $caption = lang::translate('image_edit_label');
-            }
-            $tf->setMethod($method, $id);
-
-        } else {
-            $tf->setMethod($method);
-            if (empty($caption)) $caption = lang::translate('image_add_label');
+        
+        html::formStart('image_upload_form');
+        if ($method == 'delete' && isset($id)) {
+            $legend = lang::translate('image_delete_label');
+            html::legend($legend);
+            html::submit('submit', lang::system('system_submit_delete'));
+            echo html::getStr();
+            return;
         }
-        $tf->createForm('', 'post',  'content_file', '', 'multipart/form-data',  $caption);
+        
+        $legend = '';
+        if (isset($id)) {
+            $values = self::getSingleFileInfo($id);
+            html::init($values, 'submit'); 
+            $legend = lang::translate('image_edit_label');
+            $submit = lang::system('system_submit_update');
+        } else {
+            $legend = lang::translate('image_add_label');
+            $submit = lang::system('system_submit_add');
+        }
+        
+        html::legend($legend);
+        html::label('abstract', lang::system('image_abstract_label'));
+        html::textareaSmall('abstract');
+        html::label('file', lang::system('image_file_label'));
+        html::file('file');
+        html::submit('submit', $submit);
+        echo html::getStr();
     }
+    
 
-    // {{{ insertModuleRelease()
     /**
      * method for inserting a module into the database
      * (access control is cheched in controller file)
@@ -123,11 +125,7 @@ class image extends db {
         $bind = array('file' => PDO::PARAM_LOB);
         $res = $db->insert(self::$fileTable, $values, $bind);
         return $res;
-
-
-
     }
-    // }}}
 
     public static function scaleImage ($image, $thumb, $length){
         require_once 'Image/Transform.php';

@@ -18,3 +18,6 @@ $_COS_LANG_MODULE['image_file_deleted'] = 'Billede slettet';
 $_COS_LANG_MODULE['image_file_edited'] = 'Billede rettet';
 $_COS_LANG_MODULE['image_delete_image'] = 'Slet billede';
 $_COS_LANG_MODULE['image_edit_image'] = 'Ret billede';
+
+$_COS_LANG_MODULE['image_abstract_label'] = 'Abstrakt';
+$_COS_LANG_MODULE['image_file_label'] = 'Vælg Billede Fil';

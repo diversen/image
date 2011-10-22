@@ -36,3 +36,6 @@ $_COS_LANG_MODULE['image_file_deleted'] = 'Image Deleted';
 $_COS_LANG_MODULE['image_file_edited'] = 'Image Edited';
 // Translation of Image /home/dennis/www/osnet/modules/image/edit.php
 
+$_COS_LANG_MODULE['image_abstract_label'] = 'Abstract';
+$_COS_LANG_MODULE['image_file_label'] = 'Choose Image File';
+
