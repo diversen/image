@@ -45,17 +45,18 @@ class image extends db {
     
     }
 
-    public static function setFileId (){
-        self::$fileId = uri::$fragments[2];
+    public static function setFileId ($frag = 2){
+        self::$fileId = uri::$fragments[$frag];
     }
     // }}}
     // used when invoking module as submodule.
+    /*
     public static function subModuleAdminOptionLink ($options){
         $get = http_build_query($options);
         $url = self::$path . '/add?' . $get;
         $title = lang::translate('image_add_image');
         return html::createLink($url, $title);
-    }
+    }*/
 
 
     // {{{ viewFilesForm($method, $id = null, $values = array(), $caption = null)
@@ -218,11 +219,12 @@ class image extends db {
     public static function displayFiles($rows, $options){
         $str = "";
 
-        $get = http_build_query($options);
+        //$get = http_build_query($options);
+        $url = moduleLoader::buildReferenceURL('/image/add', $options);
         if (session::isAdmin()){
             $str.= lang::translate('image_attached') . MENU_SUB_SEPARATOR_SEC;
             $add_str= lang::translate('image_add');
-            $str.= html::createLink(self::$path . "/add?$get", $add_str);
+            $str.= html::createLink($url, $add_str);
             $str.= "<br />";
         }
         foreach ($rows as $key => $val){
@@ -230,14 +232,18 @@ class image extends db {
             $title.= MENU_SUB_SEPARATOR_SEC;
             $title.= $val['title'];
             
-            $options = array ('title' => $val['abstract']); 
-            $str.= html::createLink(self::$path . "/download/$val[id]/$val[title]", $title, $options);
+            $link_options = array ('title' => $val['abstract']); 
+            $str.= html::createLink(self::$path . "/download/$val[id]/$val[title]", $title, $link_options);
 
             if (session::isAdmin()){
+                
+                $options['id'] = $val['id'];
+                $url = moduleLoader::buildReferenceURL('/image/edit', $options);     
                 $str.= MENU_SUB_SEPARATOR_SEC;
-                $str.= html::createLink(self::$path . "/edit/$val[id]?$get", lang::translate('image_edit_image'));
+                $str.= html::createLink($url, lang::translate('system_submit_edit'));
+                $url = moduleLoader::buildReferenceURL('/image/delete', $options);
                 $str.= MENU_SUB_SEPARATOR;
-                $str.= html::createLink(self::$path . "/delete/$val[id]?$get", lang::translate('image_delete_image'));
+                $str.= html::createLink($url, lang::translate('system_submit_delete'));
             }
             $str.= "<br />\n";
         }
