@@ -105,8 +105,9 @@ class image extends db {
 
         $options['filename'] = 'file';
         $options['maxsize'] = self::$maxsize;
+
         $options['allow_mime'] = self::$allowMime;
-        
+
 
         // get fp - will also check for error in upload
         $fp = uploadBlob::getFP('file', $options);
@@ -272,12 +273,14 @@ class image extends db {
      *
      * @return boolean true on success or false on failure
      */
+
     public static function updateFile () {
         $values = db::prepareToPost();
         if (!empty($_FILES['file']['tmp_name']) ){
             $options['filename'] = 'file';
             $options['maxsize'] = self::$maxsize;
             $options['allow_mime'] = self::$allowMime;
+
 
             // get fp - will also check for error in upload
             $fp = uploadBlob::getFP('file', $options);
@@ -288,7 +291,7 @@ class image extends db {
             $values['file'] = $fp;
 
             $res = self::scaleImage($_FILES['file']['tmp_name'], $_FILES['file']['tmp_name'], self::$scaleWidth);            
-           // die;
+
             if (!$res) return false;
 
             $values['title'] = $_FILES['file']['name'];

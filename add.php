@@ -24,6 +24,9 @@ template::setTitle(lang::translate('image_add_image'));
 
 $options = moduleLoader::getReferenceInfo();
 
+
 image::init($options);
 image::viewFileFormInsert($options);
+
+
 
