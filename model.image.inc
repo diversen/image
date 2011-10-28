@@ -101,13 +101,9 @@ class image extends db {
     public static function insertFile () {
         $db = new db();
 
-        //$values = db::prepareToPost();
-
         $options['filename'] = 'file';
         $options['maxsize'] = self::$maxsize;
-
         $options['allow_mime'] = self::$allowMime;
-
 
         // get fp - will also check for error in upload
         $fp = uploadBlob::getFP('file', $options);
@@ -115,8 +111,8 @@ class image extends db {
             self::$errors = uploadBlob::$errors;
             return false;
         } 
-        $values['file'] = $fp;
         
+        $values['file'] = $fp;
         // we got a valid file pointer where we checked for errors
         // now we use the tmp name for the file when scaling. 
         $res = self::scaleImage(
@@ -276,7 +272,7 @@ class image extends db {
 
     public static function updateFile () {
         $values = db::prepareToPost();
-        if (!empty($_FILES['file']['tmp_name']) ){
+        if (!empty($_FILES['file']['name']) ){
             $options['filename'] = 'file';
             $options['maxsize'] = self::$maxsize;
             $options['allow_mime'] = self::$allowMime;
