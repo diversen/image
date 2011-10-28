@@ -23,7 +23,7 @@ headline_message($headline);
 template::setTitle(lang::translate('image_delete_image'));
 
 $options = moduleLoader::getReferenceInfo();
-//print_r($options);
+
 image::setFileId($frag = 3);
-$image = new image($options);
-$image->viewFileFormDelete();
+image::init($options);
+image::viewFileFormDelete();

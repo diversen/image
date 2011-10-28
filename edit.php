@@ -25,6 +25,6 @@ template::setTitle(lang::translate('image_edit_image'));
 $options = moduleLoader::getReferenceInfo();
 //print_r($options);
 image::setFileId($frag = 3);
-$image = new image($options);
-$image->viewFileFormUpdate();
+image::init($options);
+image::viewFileFormUpdate();
 

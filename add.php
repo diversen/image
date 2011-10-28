@@ -23,7 +23,7 @@ headline_message($headline);
 template::setTitle(lang::translate('image_add_image'));
 
 $options = moduleLoader::getReferenceInfo();
-//print_r($options);
-$image = new image($options);
-$image->viewFileFormInsert($options);
+
+image::init($options);
+image::viewFileFormInsert($options);
 
