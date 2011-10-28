@@ -5,7 +5,6 @@
  * @ignore
  */
 include_once "upload.php";
-include_once "mySqlForm.php";
 
 /**
  * class content files is used for keeping track of file changes
@@ -96,81 +95,60 @@ class image extends db {
      *
      * @return boolean true on success or false on failure
      */
-    public static function insertFile ($options) {
+    public static function insertFile () {
         $db = new db();
 
-        $values = db::prepareToPost();
-        $values['parent_id'] = $options['parent_id'];
-        $values['reference'] = $options['reference'];
+        //$values = db::prepareToPost();
 
         $options['filename'] = 'file';
         $options['maxsize'] = self::$maxsize;
-        //$options['allow_mime'] = array("application/x-gzip", 'flafer');
-        //echo self::$scaleWidth; 
-        $res = self::scaleImage($_FILES['file']['tmp_name'], $_FILES['file']['tmp_name'], self::$scaleWidth);
-        
-        if (!$res) return false;
-        
-        try {
-            $values['file'] = uploadBlob::getFP($options);
-        } catch (Exception $e) {
-            self::$errors[] = $e->getMessage();
+
+        // get fp - will also check for error in upload
+        $fp = uploadBlob::getFP('file', $options);
+        if (!$fp) {
+            self::$errors = uploadBlob::$errors;
             return false;
-        }
+        } 
+        $values['file'] = $fp;
+        
+        // we got a valid file pointer where we checked for errors
+        // now we use the tmp name for the file when scaling. 
+        $res = self::scaleImage(
+                $_FILES['file']['tmp_name'], 
+                $_FILES['file']['tmp_name'], 
+                self::$scaleWidth);
         
         $values['title'] = $_FILES['file']['name'];
         $values['mimetype'] = $_FILES['file']['type'];
-
+        $values['parent_id'] = self::$options['parent_id'];
+        $values['reference'] = self::$options['reference'];
+        
         $bind = array('file' => PDO::PARAM_LOB);
         $res = $db->insert(self::$fileTable, $values, $bind);
         return $res;
     }
 
+    /**
+     *
+     * @param type $image the image file to scale from
+     * @param type $thumb the image file to scale to
+     * @param type $width the x factor or width of the image
+     * @return type 
+     */
     public static function scaleImage ($image, $thumb, $width){
         include_once "imagescale.php";
         $res = imagescale::byX($image, $thumb, $width);
         if (!empty(imagescale::$errors)) self::$errors = imagescale::$errors;
         return $res;
     }
-    // }}}
 
-
-    // {{{ validateInsert()
-    /**
-     * method for validating a post before insert
-     */
     public function validateInsert($mode = false){
         if (empty($_FILES['file']['name'])){
             self::$errors[] = lang::translate('image_no_file_specified');
-        } else {
-            if ($_FILES['file']['error'] != 0) {
-                $error_message = file_upload_error_message($_FILES['file']['error']);
-                self::$errors[] = $error_message;
-            }
-            if ($_FILES['file']['size'] > return_bytes(ini_get('post_max_size'))){
-                self::$errors[] = lang::translate('image_file_too_big') . ' ' .
-                              lang::transate('image_maximum_size_is') . " " . ini_get('post_max_size');
-            }
-        }
+        } 
     }
     // }}}
-    // {{{ validateInsert()
-    /**
-     * method for validating a post before insert
-     */
-    public function validateUpdate($mode = false){
-        if (!empty($_FILES['file']['name'])){
-            if ($_FILES['file']['error'] != 0) {
-                $error_message = file_upload_error_message($_FILES['file']['error']);
-                self::$errors[] = $error_message;
-            }
-            if ($_FILES['file']['size'] > return_bytes(ini_get('post_max_size'))){
-                self::$errors[] = lang::translate('image_file_too_big')  . ' ' .
-                              lang::transate('image_maximum_size_is') .  " " . ini_get('post_max_size');
-            }
-        }
-    }
-    // }}}
+
     // {{{ function deleteFile($id) $id = fileId
     /**
      * method for delting a file
@@ -183,14 +161,14 @@ class image extends db {
         $res = $this->delete(self::$fileTable, 'id', $id);
         return $res;
     }
-    // }}}
+   
     public static function subModulePreContent ($options){
         $rows = self::getAllFilesInfo($options);
         if (session::isAdmin()){
             return self::displayFiles($rows, $options);
         }
     }
-    // {{{ displayUserModuleReleases($id, $rows)
+
     public static function displayFiles($rows, $options){
         
         $str = "";
@@ -223,7 +201,7 @@ class image extends db {
 
         return $str;
     }
-    // }}}
+    
     static function subModuleInlineContent($options){
         self::init();
         $str = '';
@@ -244,14 +222,6 @@ class image extends db {
         return $str;
     }
 
-    
-
-    // {{{ getModuleReleases($moduleId = null)
-    /**
-     * method for fetching modules belonging to a user
-     *
-     * @return array assoc rows of modules belonging to user
-     */
     public static function getAllFilesInfo($options){
         $db = new db();
         $search = array (
@@ -263,7 +233,7 @@ class image extends db {
         $rows = $db->selectAll(self::$fileTable, $fields, $search, null, null, 'created', false);
         return $rows;
     }
-    // }}}
+
     public static function getSingleFileInfo($id = null){
         if (!$id) $id = self::$fileId;
         $db = new db();
@@ -275,13 +245,6 @@ class image extends db {
         $row = $db->selectOne(self::$fileTable, null, $search, $fields, null, 'created', false);
         return $row;
     }
-    // }}}
-
-    // {{{ displayUserModules
-    /**
-     * method for displaying all modules belonging to a user
-     *
-     */
 
     // {{{ getFile()
     /**
@@ -304,15 +267,25 @@ class image extends db {
      */
     public function updateFile () {
         $values = $this->prepareToPost();
-        if (is_uploaded_file($_FILES['file']['tmp_name']) ){
+        if (!empty($_FILES['file']['tmp_name']) ){
             $options['filename'] = 'file';
             $options['maxsize'] = self::$maxsize;
-
+            
+            // get fp - will also check for error in upload
+            $fp = uploadBlob::getFP('file', $options);
+            if (!$fp) {
+                self::$errors = uploadBlob::$errors;
+                return false;
+            } 
+            $values['file'] = $fp;
+            
             $res = self::scaleImage($_FILES['file']['tmp_name'], $_FILES['file']['tmp_name'], self::$scaleWidth);            
             if (!$res) return false;
-            $values['file'] = uploadBlob::getFP($options);
+
             $values['title'] = $_FILES['file']['name'];
             $values['mimetype'] = $_FILES['file']['type'];
+            $values['parent_id'] = self::$options['parent_id'];
+            $values['reference'] = self::$options['reference'];
 
             $bind = array('file' => PDO::PARAM_LOB);
         }
@@ -357,7 +330,7 @@ class image extends db {
 
     public function viewFileFormUpdate(){
         if (isset($_POST['submit'])){
-            $this->validateUpdate();
+
             if (!isset(self::$errors)){
                 $res = $this->updateFile();
                 if ($res){
