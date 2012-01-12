@@ -41,7 +41,7 @@ class image extends db {
     public static function init ($options = null){
         $uri = URI::getInstance();
         self::$options = $options;
-        self::$scaleWidth = get_module_ini('image_scale_width');
+        self::$scaleWidth = config::getModuleIni('image_scale_width');
         self::$path = '/image';
         self::$fileTable = 'image';
         //self::$scaleWidth = get_module_ini('image_scale_width');    
