@@ -91,6 +91,26 @@ class image extends db {
         echo html::getStr();
     }
     
+    public static function rpcServer () {
+        //cos_error_log(print_r($_SERVER, true));
+        
+        $reference = $_GET['reference'];
+        $parent_id = $_GET['parent_id'];
+        $rows = self::getAllFilesInfo(
+                array(
+                    'reference' => $reference, 
+                    'parent_id' => $parent_id)
+                );
+        foreach ($rows as $key => $val) {
+            $rows[$key]['url_m'] = "/image/download/$val[id]/$val[title]";
+            $rows[$key]['url_s'] = "/image/download/$val[id]/$val[title]";
+            //$rows[$key]['title'] = $val['title'];
+        }
+        
+        $photos = array ('images' => $rows);
+        echo json_encode($photos);
+    }
+    
 
     /**
      * method for inserting a module into the database
@@ -113,13 +133,16 @@ class image extends db {
         } 
         
         $values['file'] = $fp;
-        // we got a valid file pointer where we checked for errors
-        // now we use the tmp name for the file when scaling. 
-        $res = self::scaleImage(
-                $_FILES['file']['tmp_name'], 
-                $_FILES['file']['tmp_name'], 
-                self::$scaleWidth);
         
+        // we got a valid file pointer where we checked for errors
+        // now we use the tmp name for the file when scaling. Only
+        // scale if an scaleWidth has been set. 
+        if (self::$scaleWidth) {
+            $res = self::scaleImage(
+                    $_FILES['file']['tmp_name'], 
+                    $_FILES['file']['tmp_name'], 
+                    self::$scaleWidth);
+        }
         $values['title'] = $_FILES['file']['name'];
         $values['mimetype'] = $_FILES['file']['type'];
         $values['parent_id'] = self::$options['parent_id'];
@@ -205,9 +228,12 @@ class image extends db {
         return $str;
     }
     
-    static function subModuleInlineContent($options){
+    public static function subModuleInlineContent($options){
         //self::init($options);
-
+        if (config::getModuleIni('image_submodule_disable_insert')) {
+            return '';
+        }
+        
         $str = '';
         $files = self::getAllFilesInfo($options);
         if (!empty($files)){
