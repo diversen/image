@@ -205,7 +205,7 @@ class image extends db {
             $str.= html::createLink($url, $add_str);
             $str.= "<br />";
         }
-        foreach ($rows as $key => $val){
+        foreach ($rows as $val){
             $title = lang::translate('image_download');
             $title.= MENU_SUB_SEPARATOR_SEC;
             $title.= $val['title'];
@@ -237,7 +237,7 @@ class image extends db {
         $str = '';
         $files = self::getAllFilesInfo($options);
         if (!empty($files)){
-            foreach ($files as $key => $val) {
+            foreach ($files as $val) {
                 $file_url = self::$path . "/download/$val[id]/$val[title]";
                 $str.="<div id=\"content_image\">\n";
                 $options = array (
