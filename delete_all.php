@@ -14,11 +14,16 @@ if (!moduleLoader::includeRefrenceModule()){
     return;
 }
 
+// we now have a refrence module and a parent id wo work from.
 $link = moduleLoader::$referenceLink;
-$headline = lang::translate('image_edit_image') . MENU_SUB_SEPARATOR_SEC . $link;
+
+$headline = lang::translate('image_delete_all_image') . MENU_SUB_SEPARATOR_SEC . $link;
 headline_message($headline);
-template::setTitle(lang::translate('image_edit_image'));
+
+template::setTitle(lang::translate('image_delete_all_image'));
+
 $options = moduleLoader::getReferenceInfo();
+
 image::setFileId($frag = 3);
 image::init($options);
-image::viewFileFormUpdate();
+image::viewFileFormDeleteAll();

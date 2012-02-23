@@ -21,3 +21,7 @@ $_COS_LANG_MODULE['image_edit_image'] = 'Ret billede';
 
 $_COS_LANG_MODULE['image_abstract_label'] = 'Abstrakt';
 $_COS_LANG_MODULE['image_file_label'] = 'Vælg Billede Fil';
+
+$_COS_LANG_MODULE['image_delete_all_label'] = 'Slet alle billeder';
+$_COS_LANG_MODULE['image_file_all_deleted'] = 'Alle billeder er slettet';
+$_COS_LANG_MODULE['image_delete_all_image'] = 'Slet alle billeder';

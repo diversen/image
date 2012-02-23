@@ -62,9 +62,17 @@ class image extends db {
     */
     public function viewFileForm($method, $id = null, $values = array(), $caption = null){
         
-        html::formStart('image_upload_form');
+        html::formStartAry(array('id' => 'image_upload_form'));
         if ($method == 'delete' && isset($id)) {
             $legend = lang::translate('image_delete_label');
+            html::legend($legend);
+            html::submit('submit', lang::system('system_submit_delete'));
+            echo html::getStr();
+            return;
+        }
+        
+        if ($method == 'delete_all' && isset($id)) {
+            $legend = lang::translate('image_delete_all_label');
             html::legend($legend);
             html::submit('submit', lang::system('system_submit_delete'));
             echo html::getStr();
@@ -103,8 +111,9 @@ class image extends db {
                 );
         foreach ($rows as $key => $val) {
             $rows[$key]['url_m'] = "/image/download/$val[id]/$val[title]";
-            $rows[$key]['url_s'] = "/image/download/$val[id]/$val[title]";
-            //$rows[$key]['title'] = $val['title'];
+            $rows[$key]['url_s'] = "/image/download/$val[id]/$val[title]?size=file_thumb";
+            $rows[$key]['title'] = html::specialEncode($val['abstract']);
+
         }
         
         $photos = array ('images' => $rows);
@@ -132,23 +141,38 @@ class image extends db {
             return false;
         } 
         
-        $values['file'] = $fp;
+        $values['file_org'] = $fp;
         
         // we got a valid file pointer where we checked for errors
         // now we use the tmp name for the file when scaling. Only
         // scale if an scaleWidth has been set. 
-        if (self::$scaleWidth) {
-            $res = self::scaleImage(
+       // if (self::$scaleWidth) {
+            self::scaleImage(
                     $_FILES['file']['tmp_name'], 
+                    $_FILES['file']['tmp_name'] . "-med", 
+                    config::getModuleIni('image_scale_width'));
+            $fp_med = fopen($_FILES['file']['tmp_name'] . "-med", 'rb');
+            $values['file'] = $fp_med;
+            self::scaleImage(
                     $_FILES['file']['tmp_name'], 
-                    self::$scaleWidth);
-        }
+                    $_FILES['file']['tmp_name'] . "-thumb", 
+                    config::getModuleIni('image_scale_width_thumb'));
+            $fp_thumb = fopen($_FILES['file']['tmp_name'] . "-thumb", 'rb'); 
+        //}
+            $values['file_thumb'] = $fp_thumb;
+        
         $values['title'] = $_FILES['file']['name'];
         $values['mimetype'] = $_FILES['file']['type'];
         $values['parent_id'] = self::$options['parent_id'];
         $values['reference'] = self::$options['reference'];
+        $values['abstract'] = $_POST['abstract'];
         
-        $bind = array('file' => PDO::PARAM_LOB);
+        //$values = html::specialDecode($values);
+        
+        $bind = array(
+            'file_org' => PDO::PARAM_LOB, 
+            'file' => PDO::PARAM_LOB,
+            'file_thumb' => PDO::PARAM_LOB,);
         $res = $db->insert(self::$fileTable, $values, $bind);
         return $res;
     }
@@ -167,14 +191,15 @@ class image extends db {
         return $res;
     }
 
-    public function validateInsert($mode = false){
-        if (empty($_FILES['file']['name'])){
-            self::$errors[] = lang::translate('image_no_file_specified');
-        } 
+    public static function validateInsert($mode = false){
+        $_POST = html::specialEncode($_POST);
+        if ($mode != 'update') {
+            if (empty($_FILES['file']['name'])){
+                self::$errors[] = lang::translate('image_no_file_specified');
+            }
+        }
     }
-    // }}}
 
-    // {{{ function deleteFile($id) $id = fileId
     /**
      * method for delting a file
      *
@@ -208,23 +233,26 @@ class image extends db {
         foreach ($rows as $val){
             $title = lang::translate('image_download');
             $title.= MENU_SUB_SEPARATOR_SEC;
-            $title.= $val['title'];
+            $title.= htmlentities($val['title']);
             
-            $link_options = array ('title' => $val['abstract']); 
+            $link_options = array ('title' => htmlentities($val['abstract'])); 
             $str.= html::createLink(self::$path . "/download/$val[id]/$val[title]", $title, $link_options);
 
-            if (session::isAdmin()){        
+      
                 $options['id'] = $val['id'];
                 $url = moduleLoader::buildReferenceURL('/image/edit', $options);     
                 $str.= MENU_SUB_SEPARATOR_SEC;
-                $str.= html::createLink($url, lang::translate('system_submit_edit'));
+                $str.= html::createLink($url, lang::system('system_submit_edit'));
                 $url = moduleLoader::buildReferenceURL('/image/delete', $options);
                 $str.= MENU_SUB_SEPARATOR;
-                $str.= html::createLink($url, lang::translate('system_submit_delete'));
-            }
+                $str.= html::createLink($url, lang::system('system_submit_delete'));
+            
             $str.= "<br />\n";
         }
-
+        
+        $url = $url = "/image/delete_all/$options[parent_id]/0/$options[reference]";
+        $title = lang::translate('image_delete_all_image');
+        $str.= html::createLink($url, $title);
         return $str;
     }
     
@@ -282,8 +310,15 @@ class image extends db {
      *
      * @return array assoc row with selected module
      */
-    public static function getFile(){
+    public static function getFile($size = null){
         $db = new db();
+        
+        if (!$size) $size = 'file';
+        if ($size != 'file' || $size != 'file_thumb' || $size != 'file_org') {
+            $size = 'file';
+        }
+        
+        $db->selectOne(self::$fileTable, 'id', self::$fileId, array($size));
         $row = $db->selectOne(self::$fileTable, 'id', self::$fileId);
         return $row;
     }
@@ -327,7 +362,27 @@ class image extends db {
         $res = $db->update(self::$fileTable, $values, self::$fileId, $bind);
         return $res;
     }
-    // }}}
+    
+    public static function viewIframeFileFormInsert($options){
+        //$options['redirect'] = 
+        if (isset($_POST['submit'])){
+            self::validateInsert();
+            if (!isset(self::$errors)){
+                $res = self::insertFile($options);
+                if ($res){
+                    session::setActionMessage(lang::translate('image_file_added'));
+                    $redirect = "Location: " . $_SERVER['REQUEST_URI'];;
+                    header($redirect);
+                } else {
+                    view_form_errors(self::$errors);
+                }
+            } else {
+                view_form_errors(self::$errors);
+            }
+        }
+        self::viewFileForm('insert');
+    }
+    
     public static function viewFileFormInsert($options){
         if (isset($_POST['submit'])){
             self::validateInsert();
@@ -362,10 +417,33 @@ class image extends db {
         }
         self::viewFileForm('delete', self::$fileId);
     }
+    
+    public function deleteAll($parent, $reference){
+        $db = new db();
+        $search = array ('parent_id' => $parent, 'reference' => $reference);
+        $res = $db->delete(self::$fileTable, null, $search);
+        return $res;
+    }
+    
+    public static function viewFileFormDeleteAll(){
+        if (isset($_POST['submit'])){
+            if (!isset(self::$errors)){
+                $res = self::deleteAll(self::$options['parent_id'], self::$options['reference']);
+                if ($res){
+                    session::setActionMessage(lang::translate('image_file_all_deleted'));
+                    $header = "Location: " . self::$options['redirect'];
+                    header($header);
+                }
+            } else {
+                view_form_errors(self::$errors);
+            }
+        }
+        self::viewFileForm('delete_all', self::$fileId);
+    }
 
     public function viewFileFormUpdate(){
         if (isset($_POST['submit'])){
-
+            self::validateInsert('update');
             if (!isset(self::$errors)){
                 $res = self::updateFile();
                 if ($res){
@@ -382,14 +460,30 @@ class image extends db {
         self::viewFileForm('update', self::$fileId);
     }
 
+    public static function getImageSize () {
+        $size = null;
+        if (!isset($_GET['size'])) {
+            $size = 'file';
+        } else {
+            $size = $_GET['size'];
+        }
+        //if (!$size) $size = 'file';
+        if ($size != 'file' && $size != 'file_thumb' && $size != 'file_org') {
+            $size = 'file';
+        }
+        return $size;
+    }
 
     public static function downloadController (){
         //$image = new image();
         image::init();
         image::setFileId($frag = 2);
-        $file = image::getFile();
+        
+        $size = self::getImageSize(); 
+        $file = image::getFile($size);
+        http::cacheHeaders();
         header("Content-type: $file[mimetype]");
-        echo $file['file'];
+        echo $file[$size];
         die;
     }
 }

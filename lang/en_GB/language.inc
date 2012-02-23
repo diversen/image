@@ -39,3 +39,9 @@ $_COS_LANG_MODULE['image_file_edited'] = 'Image Edited';
 $_COS_LANG_MODULE['image_abstract_label'] = 'Abstract';
 $_COS_LANG_MODULE['image_file_label'] = 'Choose Image File';
 
+
+$_COS_LANG_MODULE['image_delete_all_label'] = 'Delete All';
+$_COS_LANG_MODULE['image_no_file_specified'] = 'No file specified';
+$_COS_LANG_MODULE['image_file_all_deleted'] = 'All images has been deleted';
+$_COS_LANG_MODULE['image_delete_all_image'] = 'Delete all images';
+
