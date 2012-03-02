@@ -167,8 +167,6 @@ class image extends db {
         $values['reference'] = self::$options['reference'];
         $values['abstract'] = $_POST['abstract'];
         
-        //$values = html::specialDecode($values);
-        
         $bind = array(
             'file_org' => PDO::PARAM_LOB, 
             'file' => PDO::PARAM_LOB,
