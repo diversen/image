@@ -7,4 +7,4 @@
  */
 
 image::downloadController ();
-
+die;
