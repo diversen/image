@@ -9,6 +9,7 @@ if (!session::checkAccessControl('image_allow_edit')){
     return;
 }
 
+moduleLoader::$referenceOptions = array ('type' => 'edit');
 if (!moduleLoader::includeRefrenceModule()){   
     moduleLoader::$status['404'] = true;
     return;

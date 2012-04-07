@@ -75,6 +75,7 @@ class image extends db {
             $legend = lang::translate('image_delete_all_label');
             html::legend($legend);
             html::submit('submit', lang::system('system_submit_delete'));
+            html::formEnd();
             echo html::getStr();
             return;
         }
@@ -96,6 +97,7 @@ class image extends db {
         html::label('file', lang::system('image_file_label'));
         html::file('file');
         html::submit('submit', $submit);
+        html::formEnd();
         echo html::getStr();
     }
     
@@ -212,28 +214,31 @@ class image extends db {
     }
    
     public static function subModulePreContent ($options){
+        return '';
         $rows = self::getAllFilesInfo($options);
         if (session::isAdmin()){
             return self::displayFiles($rows, $options);
         }
     }
+    
+    public static function subModuleAdminOption ($options){
+        $str = "";
+        $url = moduleLoader::buildReferenceURL('/image/add', $options);
+        $add_str= lang::translate('image_add');
+        $str.= html::createLink($url, $add_str);
+        return $str;
+    }
 
     public static function displayFiles($rows, $options){
         
         $str = "";
-        $url = moduleLoader::buildReferenceURL('/image/add', $options);
-        if (session::isAdmin()){
-            $str.= lang::translate('image_attached') . MENU_SUB_SEPARATOR_SEC;
-            $add_str= lang::translate('image_add');
-            $str.= html::createLink($url, $add_str);
-            $str.= "<br />";
-        }
+
         foreach ($rows as $val){
             $title = lang::translate('image_download');
             $title.= MENU_SUB_SEPARATOR_SEC;
-            $title.= htmlentities($val['title']);
+            $title.= htmlspecialchars($val['title']);
             
-            $link_options = array ('title' => htmlentities($val['abstract'])); 
+            $link_options = array ('title' => htmlspecialchars($val['abstract'])); 
             $str.= html::createLink(self::$path . "/download/$val[id]/$val[title]", $title, $link_options);
 
       
@@ -248,14 +253,18 @@ class image extends db {
             $str.= "<br />\n";
         }
         
-        $url = $url = "/image/delete_all/$options[parent_id]/0/$options[reference]";
-        $title = lang::translate('image_delete_all_image');
-        $str.= html::createLink($url, $title);
+        $info = self::getAllFilesInfo($options);
+        if (!empty($info)) { 
+            $url = $url = "/image/delete_all/$options[parent_id]/0/$options[reference]";
+            $title = lang::translate('image_delete_all_image');
+            $str.= html::createLink($url, $title);
+        }
         return $str;
     }
     
     public static function subModuleInlineContent($options){
         //self::init($options);
+        return '';
         if (config::getModuleIni('image_submodule_disable_insert')) {
             return '';
         }
@@ -363,13 +372,14 @@ class image extends db {
     
     public static function viewIframeFileFormInsert($options){
         //$options['redirect'] = 
+        $redirect = moduleLoader::buildReferenceURL('/image/add', self::$options);
         if (isset($_POST['submit'])){
             self::validateInsert();
             if (!isset(self::$errors)){
                 $res = self::insertFile($options);
                 if ($res){
                     session::setActionMessage(lang::translate('image_file_added'));
-                    $redirect = "Location: " . $_SERVER['REQUEST_URI'];;
+                    $redirect = "Location: " . $redirect;
                     header($redirect);
                 } else {
                     view_form_errors(self::$errors);
@@ -382,13 +392,14 @@ class image extends db {
     }
     
     public static function viewFileFormInsert($options){
+        $redirect = moduleLoader::buildReferenceURL('/image/add', self::$options);
         if (isset($_POST['submit'])){
             self::validateInsert();
             if (!isset(self::$errors)){
                 $res = self::insertFile($options);
                 if ($res){
                     session::setActionMessage(lang::translate('image_file_added'));
-                    $redirect = "Location: " . $options['redirect'];
+                    $redirect = "Location: " . $redirect;
                     header($redirect);
                 } else {
                     view_form_errors(self::$errors);
@@ -401,12 +412,13 @@ class image extends db {
     }
 
     public static function viewFileFormDelete(){
+        $redirect = moduleLoader::buildReferenceURL('/image/add', self::$options);
         if (isset($_POST['submit'])){
             if (!isset(self::$errors)){
                 $res = self::deleteFile(self::$fileId);
                 if ($res){
                     session::setActionMessage(lang::translate('image_file_deleted'));
-                    $header = "Location: " . self::$options['redirect'];
+                    $header = "Location: " . $redirect;
                     header($header);
                 }
             } else {
@@ -424,12 +436,13 @@ class image extends db {
     }
     
     public static function viewFileFormDeleteAll(){
+        $redirect = moduleLoader::buildReferenceURL('/image/add', self::$options);
         if (isset($_POST['submit'])){
             if (!isset(self::$errors)){
                 $res = self::deleteAll(self::$options['parent_id'], self::$options['reference']);
                 if ($res){
                     session::setActionMessage(lang::translate('image_file_all_deleted'));
-                    $header = "Location: " . self::$options['redirect'];
+                    $header = "Location: " . $redirect;
                     header($header);
                 }
             } else {
@@ -440,13 +453,14 @@ class image extends db {
     }
 
     public function viewFileFormUpdate(){
+        $redirect = moduleLoader::buildReferenceURL('/image/add', self::$options);
         if (isset($_POST['submit'])){
             self::validateInsert('update');
             if (!isset(self::$errors)){
                 $res = self::updateFile();
                 if ($res){
                     session::setActionMessage(lang::translate('image_file_edited'));
-                    $header = "Location: " . self::$options['redirect'];
+                    $header = "Location: " . $redirect;
                     header($header);
                 } else {
                     view_form_errors(self::$errors);
