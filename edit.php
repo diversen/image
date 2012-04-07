@@ -9,12 +9,11 @@ if (!session::checkAccessControl('image_allow_edit')){
     return;
 }
 
+moduleLoader::$referenceOptions = array ('edit_link' => 'true');
 if (!moduleLoader::includeRefrenceModule()){   
     moduleLoader::$status['404'] = true;
     return;
 }
-
-moduleLoader::$referenceOptions = array ('type' => 'edit');
 
 $link = moduleLoader::$referenceLink;
 $headline = lang::translate('image_edit_image') . MENU_SUB_SEPARATOR_SEC . $link;
