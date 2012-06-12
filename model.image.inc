@@ -27,31 +27,26 @@ class image extends db {
     public static $allowMime = 
         array ('image/gif', 'image/jpeg', 'image/pjpeg', 'image/png');
 
-    // {{{ function __construct()
     /**
      *
      * constructor sets init vars
      */
     function __construct($options = null){
-        //$uri = URI::getInstance();
-        //self::$options = $options;
-        //self::$scaleWidth = get_module_ini('image_scale_width');
+         $this->options = $options;
     }
 
     public static function init ($options = null){
-        //$uri = URI::getInstance();
         self::$options = $options;
         self::$scaleWidth = config::getModuleIni('image_scale_width');
         self::$path = '/image';
         self::$fileTable = 'image';
-        //self::$scaleWidth = get_module_ini('image_scale_width');    
+  
     }
 
     public static function setFileId ($frag = 2){
         self::$fileId = uri::$fragments[$frag];
     }
-    // }}}
-    // {{{ viewFilesForm($method, $id = null, $values = array(), $caption = null)
+
    /**
     * method for creating a form for insert, update and deleting entries
     * in module_system module
@@ -102,7 +97,6 @@ class image extends db {
     }
     
     public static function rpcServer () {
-        //cos_error_log(print_r($_SERVER, true));
         
         $reference = $_GET['reference'];
         $parent_id = $_GET['parent_id'];
@@ -115,7 +109,6 @@ class image extends db {
             $rows[$key]['url_m'] = "/image/download/$val[id]/$val[title]";
             $rows[$key]['url_s'] = "/image/download/$val[id]/$val[title]?size=file_thumb";
             $rows[$key]['title'] = html::specialEncode($val['abstract']);
-
         }
         
         $photos = array ('images' => $rows);
@@ -191,6 +184,10 @@ class image extends db {
         return $res;
     }
 
+    /**
+     * validate before insert update. 
+     * @param type $mode 
+     */
     public static function validateInsert($mode = false){
         $_POST = html::specialEncode($_POST);
         if ($mode != 'update') {
@@ -221,6 +218,11 @@ class image extends db {
         }
     }
     
+    /**
+     * get admin when operating as a sub module
+     * @param array $options
+     * @return string  
+     */
     public static function subModuleAdminOption ($options){
         $str = "";
         $url = moduleLoader::buildReferenceURL('/image/add', $options);
@@ -241,7 +243,6 @@ class image extends db {
             $link_options = array ('title' => htmlspecialchars($val['abstract'])); 
             $str.= html::createLink(self::$path . "/download/$val[id]/$val[title]", $title, $link_options);
 
-      
                 $options['id'] = $val['id'];
                 $url = moduleLoader::buildReferenceURL('/image/edit', $options);     
                 $str.= MENU_SUB_SEPARATOR_SEC;
