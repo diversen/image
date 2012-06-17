@@ -110,7 +110,11 @@ class image extends db {
         foreach ($rows as $key => $val) {
             $rows[$key]['url_m'] = "/image/download/$val[id]/$val[title]";
             $rows[$key]['url_s'] = "/image/download/$val[id]/$val[title]?size=file_thumb";
-            $rows[$key]['title'] = html::specialEncode($val['abstract']);
+            
+            //$str = html::specialEncode($val['abstract']);
+            $str = strings::sanitizeUrlRigid(html::specialDecode($val['abstract']));
+            $rows[$key]['title'] = $str; //"ARGH&lt;" //$str; 
+            
         }
         
         $photos = array ('images' => $rows);
@@ -497,8 +501,15 @@ class image extends db {
         
         $size = self::getImageSize(); 
         $file = image::getFile($size);
+        if (empty($file)) {
+            moduleLoader::setStatus(404);
+            return;
+        }
+        
         http::cacheHeaders();
-        header("Content-type: $file[mimetype]");
+        if (isset($file['mimetype']) && !empty($file['mimetype'])) {
+            header("Content-type: $file[mimetype]");
+        }
         echo $file[$size];
         die;
     }
