@@ -83,6 +83,7 @@ class image extends db {
             $legend = lang::translate('image_edit_label');
             $submit = lang::system('system_submit_update');
         } else {
+            html::init(html::specialEncode($_POST), 'submit'); 
             $legend = lang::translate('image_add_label');
             $submit = lang::system('system_submit_add');
         }
@@ -126,6 +127,7 @@ class image extends db {
     public static function insertFile () {
         $db = new db();
 
+        $_POST = html::specialDecode($_POST);
         $options['filename'] = 'file';
         $options['maxsize'] = self::$maxsize;
         $options['allow_mime'] = self::$allowMime;
@@ -190,7 +192,7 @@ class image extends db {
      * @param type $mode 
      */
     public static function validateInsert($mode = false){
-        $_POST = html::specialEncode($_POST);
+        //$_POST = html::specialEncode($_POST);
         if ($mode != 'update') {
             if (empty($_FILES['file']['name'])){
                 self::$errors[] = lang::translate('image_no_file_specified');
