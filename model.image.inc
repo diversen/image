@@ -40,6 +40,7 @@ class image extends db {
         self::$scaleWidth = config::getModuleIni('image_scale_width');
         self::$path = '/image';
         self::$fileTable = 'image';
+        self::$maxsize = config::getModuleIni('image_max_size');
   
     }
 
