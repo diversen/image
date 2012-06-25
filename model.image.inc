@@ -108,12 +108,12 @@ class image extends db {
                     'parent_id' => $parent_id)
                 );
         foreach ($rows as $key => $val) {
-            $rows[$key]['url_m'] = "/image/download/$val[id]/$val[title]";
+            $rows[$key]['url_m'] = "/image/download/$val[id]/" . strings::utf8SlugString($val['title']);
             $rows[$key]['url_s'] = "/image/download/$val[id]/$val[title]?size=file_thumb";
             
             //$str = html::specialEncode($val['abstract']);
             $str = strings::sanitizeUrlRigid(html::specialDecode($val['abstract']));
-            $rows[$key]['title'] = $str; //"ARGH&lt;" //$str; 
+            $rows[$key]['title'] = $str; 
             
         }
         
