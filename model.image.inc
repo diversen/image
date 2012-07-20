@@ -47,6 +47,14 @@ class image extends db {
     public static function setFileId ($frag = 2){
         self::$fileId = uri::$fragments[$frag];
     }
+    
+    public static function getImgTag ($row, $size = "file_org", $options = array ()) {
+        return $img_tag = html::createHrefImage(
+                "/image/download/$row[id]/$row[title]?size=file_org", 
+                "/image/download/$row[id]/$row[title]?size=$size", 
+                $options);
+
+    }
 
    /**
     * method for creating a form for insert, update and deleting entries
@@ -236,6 +244,15 @@ class image extends db {
         $add_str= lang::translate('image_add');
         $str.= html::createLink($url, $add_str);
         return $str;
+    }
+    
+    public static function deleteReferenceId($parent, $reference) {
+
+        return dbQ::setDelete('image')->filter('reference =', $reference)
+                ->condition('AND')
+                ->filter('parent_id =', $parent)
+                ->exec();
+               
     }
 
     public static function displayFiles($rows, $options){
