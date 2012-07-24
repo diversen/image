@@ -99,8 +99,10 @@ class image extends db {
         html::legend($legend);
         html::label('abstract', lang::system('image_abstract_label'));
         html::textareaSmall('abstract');
-        html::label('file', lang::system('image_file_label'));
-        html::file('file');
+        
+        $bytes = config::getModuleIni('image_max_size');
+        html::fileWithLabel('file', $bytes);
+        
         html::submit('submit', $submit);
         html::formEnd();
         echo html::getStr();
