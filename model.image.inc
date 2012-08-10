@@ -379,18 +379,33 @@ class image extends db {
                 self::$errors = uploadBlob::$errors;
                 return false;
             } 
-            $values['file'] = $fp;
-
-            $res = self::scaleImage($_FILES['file']['tmp_name'], $_FILES['file']['tmp_name'], self::$scaleWidth);            
-
-            if (!$res) return false;
+            
+            $values['file_org'] = $fp;
+            
+            self::scaleImage(
+                    $_FILES['file']['tmp_name'], 
+                    $_FILES['file']['tmp_name'] . "-med", 
+                    config::getModuleIni('image_scale_width'));
+            $fp_med = fopen($_FILES['file']['tmp_name'] . "-med", 'rb');
+            $values['file'] = $fp_med;
+            self::scaleImage(
+                    $_FILES['file']['tmp_name'], 
+                    $_FILES['file']['tmp_name'] . "-thumb", 
+                    config::getModuleIni('image_scale_width_thumb'));
+            $fp_thumb = fopen($_FILES['file']['tmp_name'] . "-thumb", 'rb'); 
+        //}
+            $values['file_thumb'] = $fp_thumb;
+            //if (!$res) return false;
 
             $values['title'] = $_FILES['file']['name'];
             $values['mimetype'] = $_FILES['file']['type'];
             $values['parent_id'] = self::$options['parent_id'];
             $values['reference'] = self::$options['reference'];
 
-            $bind = array('file' => PDO::PARAM_LOB);
+            $bind = array(
+            'file_org' => PDO::PARAM_LOB, 
+            'file' => PDO::PARAM_LOB,
+            'file_thumb' => PDO::PARAM_LOB,);
         }
         $db = new db();
         $res = $db->update(self::$fileTable, $values, self::$fileId, $bind);
