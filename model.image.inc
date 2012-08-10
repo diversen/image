@@ -158,20 +158,19 @@ class image extends db {
         // we got a valid file pointer where we checked for errors
         // now we use the tmp name for the file when scaling. Only
         // scale if an scaleWidth has been set. 
-       // if (self::$scaleWidth) {
-            self::scaleImage(
-                    $_FILES['file']['tmp_name'], 
-                    $_FILES['file']['tmp_name'] . "-med", 
-                    config::getModuleIni('image_scale_width'));
-            $fp_med = fopen($_FILES['file']['tmp_name'] . "-med", 'rb');
-            $values['file'] = $fp_med;
-            self::scaleImage(
-                    $_FILES['file']['tmp_name'], 
-                    $_FILES['file']['tmp_name'] . "-thumb", 
-                    config::getModuleIni('image_scale_width_thumb'));
-            $fp_thumb = fopen($_FILES['file']['tmp_name'] . "-thumb", 'rb'); 
-        //}
-            $values['file_thumb'] = $fp_thumb;
+        // if (self::$scaleWidth) {
+        self::scaleImage(
+                $_FILES['file']['tmp_name'], 
+                $_FILES['file']['tmp_name'] . "-med", 
+                config::getModuleIni('image_scale_width'));
+        $fp_med = fopen($_FILES['file']['tmp_name'] . "-med", 'rb');
+        $values['file'] = $fp_med;
+        self::scaleImage(
+                $_FILES['file']['tmp_name'], 
+                $_FILES['file']['tmp_name'] . "-thumb", 
+                config::getModuleIni('image_scale_width_thumb'));
+        $fp_thumb = fopen($_FILES['file']['tmp_name'] . "-thumb", 'rb'); 
+        $values['file_thumb'] = $fp_thumb;
         
         $values['title'] = $_FILES['file']['name'];
         $values['mimetype'] = $_FILES['file']['type'];
