@@ -413,15 +413,15 @@ class image extends db {
     
     public static function viewIframeFileFormInsert($options){
         //$options['redirect'] = 
-        $redirect = moduleLoader::buildReferenceURL('/image/add', self::$options);
+        $redirect = moduleLoader::buildReferenceURL('/image/add_ajax', self::$options);
         if (isset($_POST['submit'])){
             self::validateInsert();
             if (!isset(self::$errors)){
                 $res = self::insertFile($options);
                 if ($res){
                     session::setActionMessage(lang::translate('image_file_added'));
-                    $redirect = "Location: " . $redirect;
-                    header($redirect);
+ 
+                    http::locationHeader($redirect);
                 } else {
                     view_form_errors(self::$errors);
                 }
@@ -440,8 +440,7 @@ class image extends db {
                 $res = self::insertFile($options);
                 if ($res){
                     session::setActionMessage(lang::translate('image_file_added'));
-                    $redirect = "Location: " . $redirect;
-                    header($redirect);
+                    http::locationHeader($redirect);
                 } else {
                     view_form_errors(self::$errors);
                 }

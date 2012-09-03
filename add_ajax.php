@@ -39,4 +39,6 @@ if ($message) {
 }
 image::init($options);
 image::viewIframeFileFormInsert($options);
+$rows = image::getAllFilesInfo($options);
+echo image::displayFiles($rows, $options);
 die;

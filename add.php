@@ -24,7 +24,6 @@ headline_message($headline);
 template::setTitle(lang::translate('image_add_image'));
 
 $options = moduleLoader::getReferenceInfo();
-
 image::init($options);
 image::viewFileFormInsert($options);
 $rows = image::getAllFilesInfo($options);
