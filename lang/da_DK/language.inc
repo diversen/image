@@ -25,3 +25,5 @@ $_COS_LANG_MODULE['image_file_label'] = 'Vælg billede fil';
 $_COS_LANG_MODULE['image_delete_all_label'] = 'Slet alle billeder';
 $_COS_LANG_MODULE['image_file_all_deleted'] = 'Alle billeder er slettet';
 $_COS_LANG_MODULE['image_delete_all_image'] = 'Slet alle billeder';
+
+$_COS_LANG_MODULE['image_scale_label'] = 'Bredde i px (fx 100).';

@@ -44,3 +44,5 @@ $_COS_LANG_MODULE['image_delete_all_label'] = 'Delete all';
 $_COS_LANG_MODULE['image_no_file_specified'] = 'No file specified';
 $_COS_LANG_MODULE['image_file_all_deleted'] = 'All images has been deleted';
 $_COS_LANG_MODULE['image_delete_all_image'] = 'Delete all images';
+
+$_COS_LANG_MODULE['image_scale_label'] = 'Image width in pixels, e.g. 100';

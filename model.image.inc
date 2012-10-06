@@ -100,8 +100,13 @@ class image extends db {
         html::label('abstract', lang::system('image_abstract_label'));
         html::textareaSmall('abstract');
         
+        html::label('scale_size', lang::translate('image_scale_label'));
+        html::text('scale_size');
+        
         $bytes = config::getModuleIni('image_max_size');
         html::fileWithLabel('file', $bytes);
+        
+        
         
         html::submit('submit', $submit);
         html::formEnd();
@@ -145,6 +150,8 @@ class image extends db {
         $options['filename'] = 'file';
         $options['maxsize'] = self::$maxsize;
         $options['allow_mime'] = self::$allowMime;
+        
+        $med_size = (int)$_POST['scale_size']; unset($_POST['scale_size']);
 
         // get fp - will also check for error in upload
         $fp = uploadBlob::getFP('file', $options);
@@ -158,13 +165,17 @@ class image extends db {
         // we got a valid file pointer where we checked for errors
         // now we use the tmp name for the file when scaling. Only
         // scale if an scaleWidth has been set. 
-        // if (self::$scaleWidth) {
+        if (empty($med_size)) {
+            $med_size = config::getModuleIni('image_scale_width');
+        }
         self::scaleImage(
                 $_FILES['file']['tmp_name'], 
                 $_FILES['file']['tmp_name'] . "-med", 
-                config::getModuleIni('image_scale_width'));
+                $med_size);
+        
         $fp_med = fopen($_FILES['file']['tmp_name'] . "-med", 'rb');
         $values['file'] = $fp_med;
+        
         self::scaleImage(
                 $_FILES['file']['tmp_name'], 
                 $_FILES['file']['tmp_name'] . "-thumb", 
@@ -365,12 +376,13 @@ class image extends db {
      */
 
     public static function updateFile () {
+        $med_size = (int)$_POST['scale_size']; unset($_POST['scale_size']);
         $values = db::prepareToPost();
+        
         if (!empty($_FILES['file']['name']) ){
             $options['filename'] = 'file';
             $options['maxsize'] = self::$maxsize;
             $options['allow_mime'] = self::$allowMime;
-
 
             // get fp - will also check for error in upload
             $fp = uploadBlob::getFP('file', $options);
@@ -381,12 +393,17 @@ class image extends db {
             
             $values['file_org'] = $fp;
             
+            if (empty($med_size)) {
+                $med_size = config::getModuleIni('image_scale_width');
+            }
+
             self::scaleImage(
                     $_FILES['file']['tmp_name'], 
                     $_FILES['file']['tmp_name'] . "-med", 
-                    config::getModuleIni('image_scale_width'));
+                    $med_size);
             $fp_med = fopen($_FILES['file']['tmp_name'] . "-med", 'rb');
             $values['file'] = $fp_med;
+            //die;
             self::scaleImage(
                     $_FILES['file']['tmp_name'], 
                     $_FILES['file']['tmp_name'] . "-thumb", 
@@ -407,6 +424,7 @@ class image extends db {
             'file_thumb' => PDO::PARAM_LOB,);
         }
         $db = new db();
+        
         $res = $db->update(self::$fileTable, $values, self::$fileId, $bind);
         return $res;
     }
@@ -527,7 +545,7 @@ class image extends db {
     }
 
     public static function downloadController (){
-        //$image = new image();
+
         image::init();
         image::setFileId($frag = 2);
         
