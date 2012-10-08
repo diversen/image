@@ -4,7 +4,7 @@
 /**
  * @ignore
  */
-include_once "upload.php";
+include_once "coslib/upload.php";
 
 /**
  * class content files is used for keeping track of file changes
