@@ -10,7 +10,7 @@ include_once "coslib/upload.php";
  * class content files is used for keeping track of file changes
  * in db. Uses object fileUpload
  *
- * @package content
+ * @package image
  */
 class image extends db {
 

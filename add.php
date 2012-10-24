@@ -15,17 +15,17 @@ if (!moduleLoader::includeRefrenceModule()){
     return;
 }
 
-// we now have a refrence module and a parent id wo work from.
-$link = moduleLoader::$referenceLink;
 
-$headline = lang::translate('image_add_image') . MENU_SUB_SEPARATOR_SEC . $link;
+
+$headline = lang::translate('image_add_image') . MENU_SUB_SEPARATOR_SEC . moduleLoader::$referenceLink;
 headline_message($headline);
 
 template::setTitle(lang::translate('image_add_image'));
-
 $options = moduleLoader::getReferenceInfo();
+
+layout::setMenuFromClassPath($options['reference']);
+
 image::init($options);
 image::viewFileFormInsert($options);
 $rows = image::getAllFilesInfo($options);
 echo image::displayFiles($rows, $options);
-
