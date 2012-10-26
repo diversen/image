@@ -136,6 +136,18 @@ class image extends db {
         echo json_encode($photos);
     }
     
+    public static function getFullWebPath ($row, $size = null) {
+         $str = "/image/download/$row[id]/$row[title]";
+        //$str = "/image/download/$row[id]/" . strings::utf8SlugString($row['title']);
+        if ($size) {
+            //$str.= "?size=$size";
+        } else {
+            //$str.= "?size=file_med";
+        }
+        //echo $str; die;
+        return $str;
+    }
+    
 
     /**
      * method for inserting a module into the database
@@ -333,6 +345,10 @@ class image extends db {
 
         $fields = array ('id', 'parent_id', 'title', 'abstract', 'published', 'created');
         $rows = $db->selectAll(self::$fileTable, $fields, $search, null, null, 'created', false);
+        foreach ($rows as $key => $row) {
+            $rows[$key]['image_url'] = self::getFullWebPath($row);
+        } 
+        
         return $rows;
     }
 
@@ -555,6 +571,12 @@ class image extends db {
             moduleLoader::setStatus(404);
             return;
         }
+        /*
+        echo "hello world"; 
+ $files = get_included_files();
+ print_r($files);
+ die;*/
+        
         
         http::cacheHeaders();
         if (isset($file['mimetype']) && !empty($file['mimetype'])) {
