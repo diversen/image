@@ -494,6 +494,7 @@ class image extends db {
                     session::setActionMessage(lang::translate('image_file_deleted'));
                     $header = "Location: " . $redirect;
                     header($header);
+                    exit;
                 }
             } else {
                 view_form_errors(self::$errors);
@@ -518,6 +519,7 @@ class image extends db {
                     session::setActionMessage(lang::translate('image_file_all_deleted'));
                     $header = "Location: " . $redirect;
                     header($header);
+                    exit;
                 }
             } else {
                 view_form_errors(self::$errors);
@@ -536,6 +538,7 @@ class image extends db {
                     session::setActionMessage(lang::translate('image_file_edited'));
                     $header = "Location: " . $redirect;
                     header($header);
+                    exit;
                 } else {
                     view_form_errors(self::$errors);
                 }
