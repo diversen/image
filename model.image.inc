@@ -115,8 +115,13 @@ class image extends db {
     
     public static function rpcServer () {
         
-        $reference = $_GET['reference'];
-        $parent_id = $_GET['parent_id'];
+        $reference = @$_GET['reference'];
+        $parent_id = @$_GET['parent_id'];
+        
+        if (empty($reference) || empty($parent_id)) {
+            return;
+        }
+        
         $rows = self::getAllFilesInfo(
                 array(
                     'reference' => $reference, 
