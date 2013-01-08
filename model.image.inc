@@ -579,11 +579,6 @@ class image extends db {
             moduleLoader::setStatus(404);
             return;
         }
-        /*
-        echo "hello world"; 
- $files = get_included_files();
- print_r($files);
- die;*/
         
         
         http::cacheHeaders();
