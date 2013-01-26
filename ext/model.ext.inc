@@ -1,6 +1,6 @@
 <?php
 
-include_module('image');
+moduleloader::includeModule('image');
 
 class image_ext extends image {
         /**
