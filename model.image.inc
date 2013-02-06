@@ -269,7 +269,7 @@ class image extends db {
      */
     public static function subModuleAdminOption ($options){
         $str = "";
-        $url = moduleLoader::buildReferenceURL('/image/add', $options);
+        $url = moduleloader::buildReferenceURL('/image/add', $options);
         $add_str= lang::translate('image_add');
         $str.= html::createLink($url, $add_str);
         return $str;
@@ -297,10 +297,10 @@ class image extends db {
             $str.= html::createLink(self::$path . "/download/$val[id]/$val[title]", $title, $link_options);
 
                 $options['id'] = $val['id'];
-                $url = moduleLoader::buildReferenceURL('/image/edit', $options);     
+                $url = moduleloader::buildReferenceURL('/image/edit', $options);     
                 $str.= MENU_SUB_SEPARATOR_SEC;
                 $str.= html::createLink($url, lang::system('system_submit_edit'));
-                $url = moduleLoader::buildReferenceURL('/image/delete', $options);
+                $url = moduleloader::buildReferenceURL('/image/delete', $options);
                 $str.= MENU_SUB_SEPARATOR;
                 $str.= html::createLink($url, lang::system('system_submit_delete'));
             
@@ -452,7 +452,7 @@ class image extends db {
     
     public static function viewIframeFileFormInsert($options){
         //$options['redirect'] = 
-        $redirect = moduleLoader::buildReferenceURL('/image/add_ajax', self::$options);
+        $redirect = moduleloader::buildReferenceURL('/image/add_ajax', self::$options);
         if (isset($_POST['submit'])){
             self::validateInsert();
             if (!isset(self::$errors)){
@@ -472,7 +472,7 @@ class image extends db {
     }
     
     public static function viewFileFormInsert($options){
-        $redirect = moduleLoader::buildReferenceURL('/image/add', self::$options);
+        $redirect = moduleloader::buildReferenceURL('/image/add', self::$options);
         if (isset($_POST['submit'])){
             self::validateInsert();
             if (!isset(self::$errors)){
@@ -491,7 +491,7 @@ class image extends db {
     }
 
     public static function viewFileFormDelete(){
-        $redirect = moduleLoader::buildReferenceURL('/image/add', self::$options);
+        $redirect = moduleloader::buildReferenceURL('/image/add', self::$options);
         if (isset($_POST['submit'])){
             if (!isset(self::$errors)){
                 $res = self::deleteFile(self::$fileId);
@@ -516,7 +516,7 @@ class image extends db {
     }
     
     public static function viewFileFormDeleteAll(){
-        $redirect = moduleLoader::buildReferenceURL('/image/add', self::$options);
+        $redirect = moduleloader::buildReferenceURL('/image/add', self::$options);
         if (isset($_POST['submit'])){
             if (!isset(self::$errors)){
                 $res = self::deleteAll(self::$options['parent_id'], self::$options['reference']);
@@ -534,7 +534,7 @@ class image extends db {
     }
 
     public function viewFileFormUpdate(){
-        $redirect = moduleLoader::buildReferenceURL('/image/add', self::$options);
+        $redirect = moduleloader::buildReferenceURL('/image/add', self::$options);
         if (isset($_POST['submit'])){
             self::validateInsert('update');
             if (!isset(self::$errors)){
@@ -576,7 +576,7 @@ class image extends db {
         $size = self::getImageSize(); 
         $file = image::getFile($size);
         if (empty($file)) {
-            moduleLoader::setStatus(404);
+            moduleloader::setStatus(404);
             return;
         }
         

@@ -8,19 +8,19 @@ if (!session::checkAccessControl('image_allow_edit')){
     return;
 }
 
-moduleLoader::$referenceOptions = array ('edit_link' => 'true');
-if (!moduleLoader::includeRefrenceModule()){   
-    moduleLoader::$status['404'] = true;
+moduleloader::$referenceOptions = array ('edit_link' => 'true');
+if (!moduleloader::includeRefrenceModule()){   
+    moduleloader::$status['404'] = true;
     return;
 }
 
 // set headline and title
-$headline = lang::translate('image_add_image') . MENU_SUB_SEPARATOR_SEC . moduleLoader::$referenceLink;
+$headline = lang::translate('image_add_image') . MENU_SUB_SEPARATOR_SEC . moduleloader::$referenceLink;
 headline_message($headline);
 template::setTitle(lang::translate('image_add_image'));
 
 // get options
-$options = moduleLoader::getReferenceInfo();
+$options = moduleloader::getReferenceInfo();
 
 // set parent modules menu
 layout::setMenuFromClassPath($options['reference']);
