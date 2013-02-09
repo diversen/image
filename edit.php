@@ -17,7 +17,7 @@ if (!moduleloader::includeRefrenceModule()){
 
 $link = moduleloader::$referenceLink;
 $headline = lang::translate('image_edit_image') . MENU_SUB_SEPARATOR_SEC . $link;
-headline_message($headline);
+html::headline($headline);
 template::setTitle(lang::translate('image_edit_image'));
 $options = moduleloader::getReferenceInfo();
 image::setFileId($frag = 3);

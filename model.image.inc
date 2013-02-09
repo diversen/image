@@ -462,10 +462,10 @@ class image extends db {
  
                     http::locationHeader($redirect);
                 } else {
-                    view_form_errors(self::$errors);
+                    html::errors(self::$errors);
                 }
             } else {
-                view_form_errors(self::$errors);
+                html::errors(self::$errors);
             }
         }
         self::viewFileForm('insert');
@@ -481,10 +481,10 @@ class image extends db {
                     session::setActionMessage(lang::translate('image_file_added'));
                     http::locationHeader($redirect);
                 } else {
-                    view_form_errors(self::$errors);
+                    html::errors(self::$errors);
                 }
             } else {
-                view_form_errors(self::$errors);
+                html::errors(self::$errors);
             }
         }
         self::viewFileForm('insert');
@@ -502,7 +502,7 @@ class image extends db {
                     exit;
                 }
             } else {
-                view_form_errors(self::$errors);
+                html::errors(self::$errors);
             }
         }
         self::viewFileForm('delete', self::$fileId);
@@ -527,7 +527,7 @@ class image extends db {
                     exit;
                 }
             } else {
-                view_form_errors(self::$errors);
+                html::errors(self::$errors);
             }
         }
         self::viewFileForm('delete_all', self::$fileId);
@@ -545,10 +545,10 @@ class image extends db {
                     header($header);
                     exit;
                 } else {
-                    view_form_errors(self::$errors);
+                    html::errors(self::$errors);
                 }
             } else {
-                view_form_errors(self::$errors);
+                html::errors(self::$errors);
             }
         }
         self::viewFileForm('update', self::$fileId);

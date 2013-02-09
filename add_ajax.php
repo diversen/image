@@ -35,7 +35,7 @@ $options = moduleloader::getReferenceInfo();
 
 $message = session::getActionMessage();
 if ($message) {
-    view_confirm($message);
+    html::confirm($message);
 }
 image::init($options);
 image::viewIframeFileFormInsert($options);

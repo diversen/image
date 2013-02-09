@@ -16,7 +16,7 @@ if (!moduleloader::includeRefrenceModule()){
 
 // set headline and title
 $headline = lang::translate('image_add_image') . MENU_SUB_SEPARATOR_SEC . moduleloader::$referenceLink;
-headline_message($headline);
+html::headline($headline);
 template::setTitle(lang::translate('image_add_image'));
 
 // get options
