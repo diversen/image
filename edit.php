@@ -15,11 +15,27 @@ if (!moduleloader::includeRefrenceModule()){
     return;
 }
 
+$options = moduleloader::getReferenceInfo();
+
+$allow = config::getModuleIni('image_allow_edit');
+
+// if allow is set to user - this module only allow user to edit his own images
+if ($allow == 'user') {
+    $table = moduleloader::moduleeReferenceToTable($options['reference']);
+    if (!user::ownID($table, $options['parent_id'], session::getUserId())) {
+        moduleloader::setStatus(403);
+        return;
+    }   
+}
+
 $link = moduleloader::$referenceLink;
 $headline = lang::translate('image_edit_image') . MENU_SUB_SEPARATOR_SEC . $link;
 html::headline($headline);
 template::setTitle(lang::translate('image_edit_image'));
-$options = moduleloader::getReferenceInfo();
+
 image::setFileId($frag = 3);
+
+// set parent modules menu
+layout::setMenuFromClassPath($options['reference']);
 image::init($options);
 image::viewFileFormUpdate();
