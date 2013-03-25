@@ -100,14 +100,14 @@ class image extends db {
         html::label('abstract', lang::system('image_abstract_label'));
         html::textareaSmall('abstract');
         
-        html::label('scale_size', lang::translate('image_scale_label'));
-        html::text('scale_size');
+        if (config::getModuleIni('image_user_set_scale')) {
+            html::label('scale_size', lang::translate('image_scale_label'));
+            html::text('scale_size');
+        }
         
         $bytes = config::getModuleIni('image_max_size');
         html::fileWithLabel('file', $bytes);
-        
-        
-        
+            
         html::submit('submit', $submit);
         html::formEnd();
         echo html::getStr();
@@ -153,6 +153,16 @@ class image extends db {
         return $str;
     }
     
+    /**
+     * methoding for setting med size if allowed
+     */
+    public static function getMedSize () {
+        $med_size = (int)$_POST['scale_size']; unset($_POST['scale_size']);
+        if (empty($med_size)) {
+            $med_size = config::getModuleIni('image_scale_width');
+        }
+        return $med_size;
+    }
 
     /**
      * method for inserting a module into the database
@@ -168,7 +178,7 @@ class image extends db {
         $options['maxsize'] = self::$maxsize;
         $options['allow_mime'] = self::$allowMime;
         
-        $med_size = (int)$_POST['scale_size']; unset($_POST['scale_size']);
+        $med_size = image::getMedSize();
 
         // get fp - will also check for error in upload
         $fp = uploadBlob::getFP('file', $options);
@@ -182,9 +192,7 @@ class image extends db {
         // we got a valid file pointer where we checked for errors
         // now we use the tmp name for the file when scaling. Only
         // scale if an scaleWidth has been set. 
-        if (empty($med_size)) {
-            $med_size = config::getModuleIni('image_scale_width');
-        }
+        
         self::scaleImage(
                 $_FILES['file']['tmp_name'], 
                 $_FILES['file']['tmp_name'] . "-med", 
@@ -397,7 +405,7 @@ class image extends db {
      */
 
     public static function updateFile () {
-        $med_size = (int)$_POST['scale_size']; unset($_POST['scale_size']);
+        $med_size = self::getMedSize();
         $values = db::prepareToPost();
         
         if (!empty($_FILES['file']['name']) ){

@@ -1,5 +1,14 @@
+; scale width
 image_scale_width = 600
+; thumb size
 image_scale_width_thumb = 200
-image_allow_edit = "admin"
+; who can edit
+; if set to user - there is control over which user 
+; owns which images
+image_allow_edit = "user"
+; diable insert image if used as sub module
 image_submodule_disable_insert = 1
+; max size in bytes
 image_max_size = 6000000
+; allow to set a thumb scale size for images
+image_user_set_scale = 0
