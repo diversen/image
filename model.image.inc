@@ -285,7 +285,7 @@ class image extends db {
     
     public static function deleteReferenceId($parent, $reference) {
 
-        return dbQ::setDelete('image')->filter('reference =', $reference)
+        return db_q::setDelete('image')->filter('reference =', $reference)
                 ->condition('AND')
                 ->filter('parent_id =', $parent)
                 ->exec();
