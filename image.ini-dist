@@ -12,3 +12,7 @@ image_submodule_disable_insert = 1
 image_max_size = 6000000
 ; allow to set a thumb scale size for images
 image_user_set_scale = 0
+; font to use when generating captcha image
+image_captcha_font = "/fonts/captcha.ttf"
+; method to use
+image_captcha_method = "stringrandom"
