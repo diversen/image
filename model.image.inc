@@ -32,7 +32,7 @@ class image extends db {
      * constructor sets init vars
      */
     function __construct($options = null){
-         $this->options = $options;
+         self::$options = $options;
     }
 
     public static function init ($options = null){
