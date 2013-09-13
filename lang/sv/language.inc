@@ -1,0 +1,31 @@
+<?php
+
+$_COS_LANG_MODULE['image_edit_image'] = 'Redigera bild';
+$_COS_LANG_MODULE['image_add_image'] = 'Redigera bilder';
+$_COS_LANG_MODULE['image_delete_image'] = 'Radera bild';
+$_COS_LANG_MODULE['image_edit_label'] = 'Redigera bild';
+$_COS_LANG_MODULE['image_delete_label'] = 'Radera bild';
+$_COS_LANG_MODULE['image_add_label'] = 'Add avbildar';
+$_COS_LANG_MODULE['image_edit'] = 'Redigera';
+$_COS_LANG_MODULE['image_delete'] = 'Radera';
+$_COS_LANG_MODULE['image_add'] = 'Redigera bilder';
+$_COS_LANG_MODULE['image_form_abstract'] = 'Abstrakt';
+$_COS_LANG_MODULE['image_form_image'] = 'Välj bild';
+$_COS_LANG_MODULE['image_delete_caption'] = 'Radera bild';
+$_COS_LANG_MODULE['image_edit_caption'] = 'Redigera bild';
+$_COS_LANG_MODULE['image_add_caption'] = 'Lägg till ny bild';
+$_COS_LANG_MODULE['image_no_image_specified'] = 'Ingen bild specificerad';
+$_COS_LANG_MODULE['image_file_too_big'] = 'Bilden är för stor';
+$_COS_LANG_MODULE['image_attached'] = 'Bild';
+$_COS_LANG_MODULE['image_download'] = 'Ladda ner';
+$_COS_LANG_MODULE['image_add_new'] = 'Lägg till ny';
+$_COS_LANG_MODULE['image_file_added'] = 'Bild tillsattes';
+$_COS_LANG_MODULE['image_file_deleted'] = 'Bild utgår';
+$_COS_LANG_MODULE['image_file_edited'] = 'Bild redigeras';
+$_COS_LANG_MODULE['image_abstract_label'] = 'Abstrakt';
+$_COS_LANG_MODULE['image_file_label'] = 'Välj bildfil';
+$_COS_LANG_MODULE['image_delete_all_label'] = 'Radera alla';
+$_COS_LANG_MODULE['image_no_file_specified'] = 'Ingen fil specificerad';
+$_COS_LANG_MODULE['image_file_all_deleted'] = 'Alla bilder har tagits bort';
+$_COS_LANG_MODULE['image_delete_all_image'] = 'Radera alla bilder';
+$_COS_LANG_MODULE['image_scale_label'] = 'Bild bredd i pixlar, t.ex. 100';
