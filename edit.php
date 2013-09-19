@@ -29,9 +29,9 @@ if ($allow == 'user') {
 }
 
 $link = moduleloader::$referenceLink;
-$headline = lang::translate('image_edit_image') . MENU_SUB_SEPARATOR_SEC . $link;
+$headline = lang::translate('Edit image') . MENU_SUB_SEPARATOR_SEC . $link;
 html::headline($headline);
-template::setTitle(lang::translate('image_edit_image'));
+template::setTitle(lang::translate('Edit image'));
 
 image::setFileId($frag = 3);
 

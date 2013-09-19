@@ -32,9 +32,9 @@ if ($allow == 'user') {
 
 
 // set headline and title
-$headline = lang::translate('image_add_image') . MENU_SUB_SEPARATOR_SEC . moduleloader::$referenceLink;
+$headline = lang::translate('Add image') . MENU_SUB_SEPARATOR_SEC . moduleloader::$referenceLink;
 html::headline($headline);
-template::setTitle(lang::translate('image_add_image'));
+template::setTitle(lang::translate('Add image'));
 
 // set parent modules menu
 layout::setMenuFromClassPath($options['reference']);

@@ -31,10 +31,10 @@ if ($allow == 'user') {
 // we now have a refrence module and a parent id wo work from.
 $link = moduleloader::$referenceLink;
 
-$headline = lang::translate('image_delete_image') . MENU_SUB_SEPARATOR_SEC . $link;
+$headline = lang::translate('Delete image') . MENU_SUB_SEPARATOR_SEC . $link;
 html::headline($headline);
 
-template::setTitle(lang::translate('image_delete_image'));
+template::setTitle(lang::translate('Delete image'));
 
 image::setFileId($frag = 3);
 image::init($options);

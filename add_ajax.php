@@ -22,10 +22,10 @@ if (!moduleloader::includeRefrenceModule()){
 // we now have a refrence module and a parent id wo work from.
 //$link = moduleloader::$referenceLink;
 
-//$headline = lang::translate('image_add_image') . MENU_SUB_SEPARATOR_SEC . $link;
+//$headline = lang::translate('Add image') . MENU_SUB_SEPARATOR_SEC . $link;
 //headline_message($headline);
 
-//template::setTitle(lang::translate('image_add_image'));
+//template::setTitle(lang::translate('Add image'));
 
 //$options = moduleloader::getReferenceInfo();
 

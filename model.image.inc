@@ -68,7 +68,7 @@ class image extends db {
         
         html::formStartAry(array('id' => 'image_upload_form'));
         if ($method == 'delete' && isset($id)) {
-            $legend = lang::translate('image_delete_label');
+            $legend = lang::translate('Delete image');
             html::legend($legend);
             html::submit('submit', lang::system('system_submit_delete'));
             echo html::getStr();
@@ -76,7 +76,7 @@ class image extends db {
         }
         
         if ($method == 'delete_all' && isset($id)) {
-            $legend = lang::translate('image_delete_all_label');
+            $legend = lang::translate('Delete all images');
             html::legend($legend);
             html::submit('submit', lang::system('system_submit_delete'));
             html::formEnd();
@@ -88,20 +88,20 @@ class image extends db {
         if (isset($id)) {
             $values = self::getSingleFileInfo($id);
             html::init($values, 'submit'); 
-            $legend = lang::translate('image_edit_label');
+            $legend = lang::translate('Edit image');
             $submit = lang::system('system_submit_update');
         } else {
             html::init(html::specialEncode($_POST), 'submit'); 
-            $legend = lang::translate('image_add_label');
+            $legend = lang::translate('Add image');
             $submit = lang::system('system_submit_add');
         }
         
         html::legend($legend);
-        html::label('abstract', lang::system('image_abstract_label'));
+        html::label('abstract', lang::system('Abstract'));
         html::textareaSmall('abstract');
         
         if (config::getModuleIni('image_user_set_scale')) {
-            html::label('scale_size', lang::translate('image_scale_label'));
+            html::label('scale_size', lang::translate('Image width in pixels, e.g. 100'));
             html::text('scale_size');
         }
         
@@ -244,7 +244,7 @@ class image extends db {
         //$_POST = html::specialEncode($_POST);
         if ($mode != 'update') {
             if (empty($_FILES['file']['name'])){
-                self::$errors[] = lang::translate('image_no_file_specified');
+                self::$errors[] = lang::translate('No file was specified');
             }
         }
     }
@@ -278,7 +278,7 @@ class image extends db {
     public static function subModuleAdminOption ($options){
         $str = "";
         $url = moduleloader::buildReferenceURL('/image/add', $options);
-        $add_str= lang::translate('image_add');
+        $add_str= lang::translate('Delete');
         $str.= html::createLink($url, $add_str);
         return $str;
     }
@@ -297,7 +297,7 @@ class image extends db {
         $str = "";
 
         foreach ($rows as $val){
-            $title = lang::translate('image_download');
+            $title = lang::translate('Download');
             $title.= MENU_SUB_SEPARATOR_SEC;
             $title.= htmlspecialchars($val['title']);
             
@@ -318,7 +318,7 @@ class image extends db {
         $info = self::getAllFilesInfo($options);
         if (!empty($info)) { 
             $url = $url = "/image/delete_all/$options[parent_id]/0/$options[reference]";
-            $title = lang::translate('image_delete_all_image');
+            $title = lang::translate('Delete all images');
             $str.= html::createLink($url, $title);
         }
         return $str;
@@ -466,7 +466,7 @@ class image extends db {
             if (!isset(self::$errors)){
                 $res = self::insertFile($options);
                 if ($res){
-                    session::setActionMessage(lang::translate('image_file_added'));
+                    session::setActionMessage(lang::translate('Image was added'));
  
                     http::locationHeader($redirect);
                 } else {
@@ -486,7 +486,7 @@ class image extends db {
             if (!isset(self::$errors)){
                 $res = self::insertFile($options);
                 if ($res){
-                    session::setActionMessage(lang::translate('image_file_added'));
+                    session::setActionMessage(lang::translate('Image was added'));
                     http::locationHeader($redirect);
                 } else {
                     html::errors(self::$errors);
@@ -504,7 +504,7 @@ class image extends db {
             if (!isset(self::$errors)){
                 $res = self::deleteFile(self::$fileId);
                 if ($res){
-                    session::setActionMessage(lang::translate('image_file_deleted'));
+                    session::setActionMessage(lang::translate('Image was deleted'));
                     $header = "Location: " . $redirect;
                     header($header);
                     exit;
@@ -529,7 +529,7 @@ class image extends db {
             if (!isset(self::$errors)){
                 $res = self::deleteAll(self::$options['parent_id'], self::$options['reference']);
                 if ($res){
-                    session::setActionMessage(lang::translate('image_file_all_deleted'));
+                    session::setActionMessage(lang::translate('All images has been deleted'));
                     $header = "Location: " . $redirect;
                     header($header);
                     exit;
@@ -548,7 +548,7 @@ class image extends db {
             if (!isset(self::$errors)){
                 $res = self::updateFile();
                 if ($res){
-                    session::setActionMessage(lang::translate('image_file_edited'));
+                    session::setActionMessage(lang::translate('Image was updated'));
                     $header = "Location: " . $redirect;
                     header($header);
                     exit;

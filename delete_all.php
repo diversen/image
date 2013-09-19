@@ -18,10 +18,10 @@ if (!moduleloader::includeRefrenceModule()){
 // we now have a refrence module and a parent id wo work from.
 $link = moduleloader::$referenceLink;
 
-$headline = lang::translate('image_delete_all_image') . MENU_SUB_SEPARATOR_SEC . $link;
+$headline = lang::translate('Delete all images') . MENU_SUB_SEPARATOR_SEC . $link;
 html::headline($headline);
 
-template::setTitle(lang::translate('image_delete_all_image'));
+template::setTitle(lang::translate('Delete all images'));
 
 $options = moduleloader::getReferenceInfo();
 
