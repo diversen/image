@@ -278,7 +278,7 @@ class image extends db {
     public static function subModuleAdminOption ($options){
         $str = "";
         $url = moduleloader::buildReferenceURL('/image/add', $options);
-        $add_str= lang::translate('Delete');
+        $add_str= lang::translate('Edit images');
         $str.= html::createLink($url, $add_str);
         return $str;
     }

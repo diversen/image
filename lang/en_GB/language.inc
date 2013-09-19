@@ -15,6 +15,9 @@ $_COS_LANG_MODULE['Delete image'] = 'Delete image';
 $_COS_LANG_MODULE['Add image'] = 'Add image';
 
 
+
+$_COS_LANG_MODULE['Edit images'] = 'Edit images';
+
 $_COS_LANG_MODULE['image_form_abstract'] = 'Abstract';
 $_COS_LANG_MODULE['image_form_image'] = 'Select image';
 
