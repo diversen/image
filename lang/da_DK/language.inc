@@ -2,12 +2,12 @@
 
 // Translation of file /home/dennis/www/mandlen/modules/image/model.image.inc
 
-$_COS_LANG_MODULE['Add image'] = 'Ret billeder';
+$_COS_LANG_MODULE['Add image'] = 'Tilføj billeder';
 $_COS_LANG_MODULE['image_form_abstract'] = 'Beskrivelse';
 $_COS_LANG_MODULE['image_form_image'] = 'Vælg billede';
 $_COS_LANG_MODULE['Delete image'] = 'Slet billede';
 $_COS_LANG_MODULE['Edit image'] = 'Ret billede';
-$_COS_LANG_MODULE['Add image'] = 'Tilføj';
+
 $_COS_LANG_MODULE['No file was specified'] = 'Ingen fil valgt';
 $_COS_LANG_MODULE['image_file_too_big'] = 'Filen er for stor';
 $_COS_LANG_MODULE['image_attached'] = 'Billeder';
