@@ -64,7 +64,7 @@ class image extends db {
     * @param string    method (update, delete or insert)
     * @param int       id (if delete or update)
     */
-    public function viewFileForm($method, $id = null, $values = array(), $caption = null){
+    public static function viewFileForm($method, $id = null, $values = array(), $caption = null){
         
         html::formStartAry(array('id' => 'image_upload_form'));
         if ($method == 'delete' && isset($id)) {
