@@ -1,31 +1,17 @@
 <?php
 
-
-// Translation of file /modules/image/delete_all.php
-
-$_COS_LANG_MODULE['Delete all images'] = 'Slet alle billeder';
-
-// Translation of file /modules/image/model.image.inc
-
-$_COS_LANG_MODULE['Delete image'] = 'Slet billede';
 $_COS_LANG_MODULE['Edit image'] = 'Ret billede';
 $_COS_LANG_MODULE['Add image'] = 'Tilføj billede';
-$_COS_LANG_MODULE['Image width in pixels, e.g. 100'] = 'Bredde i px (fx 100).';
-$_COS_LANG_MODULE['No file was specified'] = 'Ingen fil valgt';
+$_COS_LANG_MODULE['Delete image'] = 'Slet billede';
 $_COS_LANG_MODULE['Edit images'] = 'Rediger Billeder';
+$_COS_LANG_MODULE['image_form_abstract'] = 'Abstrakt';
+$_COS_LANG_MODULE['image_form_image'] = 'Vælg billede';
 $_COS_LANG_MODULE['Download'] = 'Vis';
 $_COS_LANG_MODULE['Image was added'] = 'Billede tilføjet';
 $_COS_LANG_MODULE['Image was deleted'] = 'Billede slettet';
-$_COS_LANG_MODULE['All images has been deleted'] = 'Alle billeder er slettet';
 $_COS_LANG_MODULE['Image was updated'] = 'Billede rettet';
-
-// Translation of file /modules/image/add.php
-
-
-// Translation of file /modules/image/edit.php
-
-
-// Translation of file /modules/image/add_ajax.php
-
-
-// Translation of file /modules/image/delete.php
+$_COS_LANG_MODULE['Abstract'] = 'Abstrakt';
+$_COS_LANG_MODULE['Delete all images'] = 'Slet alle billeder';
+$_COS_LANG_MODULE['No file was specified'] = 'Ingen fil valgt';
+$_COS_LANG_MODULE['All images has been deleted'] = 'Alle billeder er slettet';
+$_COS_LANG_MODULE['Image width in pixels, e.g. 100'] = 'Bredde i px (fx 100).';
