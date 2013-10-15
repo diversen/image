@@ -4,7 +4,7 @@
  * view file for adding files
  * @package    image
  */
-if (!session::checkAccessControl('image_allow_edit')){
+if (!session::checkAccessFromModuleIni('image_allow_edit')){
     return;
 }
 
