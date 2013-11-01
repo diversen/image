@@ -157,8 +157,12 @@ class image extends db {
      * methoding for setting med size if allowed
      */
     public static function getMedSize () {
-        $med_size = (int)$_POST['scale_size']; unset($_POST['scale_size']);
-        if (empty($med_size)) {
+        $med_size = 0;
+        if (isset($_POST['scale_size']) && !empty($_POST['scale_size'])  && $_POST['scale_size'] > 0 ) {
+            $med_size = (int)$_POST['scale_size']; 
+            unset($_POST['scale_size']);
+        }
+        if (!$med_size) {
             $med_size = config::getModuleIni('image_scale_width');
         }
         return $med_size;
