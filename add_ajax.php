@@ -1,35 +1,20 @@
 <?php
 
 /**
- * view file for adding files
- *
- * @package    image
- */
+ * org content
+
+
 if (!session::checkAccessFromModuleIni('image_allow_edit')){
     return;
 }
+
+template::render('basic');
 
 if (!moduleloader::includeRefrenceModule()){   
     moduleloader::$status['404'] = true;
     return;
 }
 
-//if (!moduleloader::includeRefrenceModule()){   
-//    moduleloader::$status['404'] = true;
-//    return;
-//}
-
-// we now have a refrence module and a parent id wo work from.
-//$link = moduleloader::$referenceLink;
-
-//$headline = lang::translate('Add image') . MENU_SUB_SEPARATOR_SEC . $link;
-//headline_message($headline);
-
-//template::setTitle(lang::translate('Add image'));
-
-//$options = moduleloader::getReferenceInfo();
-
-//image::init($options);
 $options = moduleloader::getReferenceInfo();
 
 
@@ -41,4 +26,33 @@ image::init($options);
 image::viewIframeFileFormInsert($options);
 $rows = image::getAllFilesInfo($options);
 echo image::displayFiles($rows, $options);
-die;
+//die;
+
+*/
+/**
+ * view file for adding files
+ *
+ * @package    image
+ */
+if (!session::checkAccessFromModuleIni('image_allow_edit')){
+    return;
+}
+
+template::render('basic');
+
+if (!moduleloader::includeRefrenceModule()){   
+    moduleloader::$status['404'] = true;
+    return;
+}
+
+
+
+$image = new image();
+$image->viewFileForm('insert');
+//print_r($options);
+//image::init($options);
+//image::viewIframeFileFormInsert($options);
+//$rows = image::getAllFilesInfo($options);
+//echo image::displayFiles($rows, $options);
+
+
