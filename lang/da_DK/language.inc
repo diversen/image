@@ -25,7 +25,4 @@ $_COS_LANG_MODULE['Image was updated'] = 'Billede rettet';
 // Translation of file /modules/image/edit.php
 
 
-// Translation of file /modules/image/add_ajax.php
-
-
 // Translation of file /modules/image/delete.php
