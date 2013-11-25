@@ -8,8 +8,6 @@ if (!session::checkAccessFromModuleIni('image_allow_edit')){
     return;
 }
 
-
-
 moduleloader::$referenceOptions = array ('edit_link' => 'true');
 if (!moduleloader::includeRefrenceModule()){   
     moduleloader::setStatus(404);

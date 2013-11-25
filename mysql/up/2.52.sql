@@ -1,0 +1,1 @@
+ALTER table image ADD column `user_id` int(11) DEFAULT 0;

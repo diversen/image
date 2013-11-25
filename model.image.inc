@@ -483,6 +483,25 @@ class image extends db {
         self::viewFileForm('insert');
     }
     
+    public static function viewFileFormInsertClean($options){
+        // $redirect = moduleloader::buildReferenceURL('/image/add', self::$options);
+        if (isset($_POST['submit'])){
+            self::validateInsert();
+            if (!isset(self::$errors)){
+                $res = self::insertFile($options);
+                if ($res){
+                    session::setActionMessage(lang::translate('Image was added'));
+                    http::locationHeader($redirect);
+                } else {
+                    html::errors(self::$errors);
+                }
+            } else {
+                html::errors(self::$errors);
+            }
+        }
+        self::viewFileForm('insert');
+    }
+    
     public static function viewFileFormInsert($options){
         $redirect = moduleloader::buildReferenceURL('/image/add', self::$options);
         if (isset($_POST['submit'])){
