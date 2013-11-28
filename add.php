@@ -26,9 +26,6 @@ if ($allow == 'user') {
     }   
 }
 
-
-
-
 // set headline and title
 $headline = lang::translate('Add image') . MENU_SUB_SEPARATOR_SEC . moduleloader::$referenceLink;
 html::headline($headline);

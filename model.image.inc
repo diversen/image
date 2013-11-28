@@ -217,6 +217,7 @@ class image extends db {
         $values['parent_id'] = self::$options['parent_id'];
         $values['reference'] = self::$options['reference'];
         $values['abstract'] = $_POST['abstract'];
+        $values['user_id'] = session::getUserId();
         
         $bind = array(
             'file_org' => PDO::PARAM_LOB, 
