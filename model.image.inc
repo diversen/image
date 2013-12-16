@@ -503,8 +503,17 @@ class image extends db {
         self::viewFileForm('insert');
     }
     
+    /**
+     * view form for uploading a file.
+     * @param type $options
+     */
     public static function viewFileFormInsert($options){
-        $redirect = moduleloader::buildReferenceURL('/image/add', self::$options);
+        if (config::getModuleIni('image_redirect_parent')) {
+            $redirect = moduleloader_reference::getParentEditUrlFromOptions(self::$options);
+        } else {
+            $redirect = moduleloader::buildReferenceURL('/image/add', self::$options);
+        }
+
         if (isset($_POST['submit'])){
             self::validateInsert();
             if (!isset(self::$errors)){
