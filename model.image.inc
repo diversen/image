@@ -97,7 +97,7 @@ class image extends db {
         }
         
         html::legend($legend);
-        html::label('abstract', lang::system('Abstract'));
+        html::label('abstract', lang::translate('Abstract'));
         html::textareaSmall('abstract');
         
         if (config::getModuleIni('image_user_set_scale')) {
