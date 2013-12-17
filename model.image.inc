@@ -288,6 +288,27 @@ class image extends db {
         return $str;
     }
     
+    /**
+     * get admin options as ary ('text', 'url', 'link') when operating as a sub module
+     * @param array $options
+     * @return array $ary  
+     */
+    public static function subModuleAdminOptionAry ($options){
+        $ary = array ();
+        $url = moduleloader::buildReferenceURL('/image/add', $options);
+        $text = lang::translate('Edit images');
+        $ary['link'] = html::createLink($url, $text);
+        $ary['url'] = $url;
+        $ary['text'] = $text;
+        return $ary;
+    }
+    
+    /**
+     * deletes images from a reference and a parent_id
+     * @param type $parent
+     * @param type $reference
+     * @return type
+     */
     public static function deleteReferenceId($parent, $reference) {
 
         return db_q::setDelete('image')->filter('reference =', $reference)
@@ -297,6 +318,12 @@ class image extends db {
                
     }
 
+    /**
+     * displays all files from db rows and options
+     * @param array $rows
+     * @param array $options
+     * @return string $html
+     */
     public static function displayFiles($rows, $options){
         
         $str = "";
