@@ -5,6 +5,10 @@
 
 $_COS_LANG_MODULE['Delete image'] = 'Delete image';
 
+// Translation of file /modules/image/edit.php
+
+$_COS_LANG_MODULE['Edit image'] = 'Edit image';
+
 // Translation of file /modules/image/add.php
 
 $_COS_LANG_MODULE['Add image'] = 'Add image';
@@ -12,10 +16,6 @@ $_COS_LANG_MODULE['Add image'] = 'Add image';
 // Translation of file /modules/image/delete_all.php
 
 $_COS_LANG_MODULE['Delete all images'] = 'Delete all images';
-
-// Translation of file /modules/image/edit.php
-
-$_COS_LANG_MODULE['Edit image'] = 'Edit image';
 
 // Translation of file /modules/image/model.image.inc
 
