@@ -3,8 +3,8 @@
 moduleloader::includeModule('image');
 
 class image_ext extends image {
-        /**
-     * method for inserting a module into the database
+    /**
+     * method for inserting a file into the database
      * (access control is cheched in controller file)
      *
      * @return boolean true on success or false on failure
