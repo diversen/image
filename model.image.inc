@@ -174,7 +174,7 @@ class image extends db {
      *
      * @return boolean true on success or false on failure
      */
-    public static function insertFile ($values = null) {
+    public static function insertFile () {
         $db = new db();
 
         $_POST = html::specialDecode($_POST);
@@ -223,6 +223,9 @@ class image extends db {
             'file_org' => PDO::PARAM_LOB, 
             'file' => PDO::PARAM_LOB,
             'file_thumb' => PDO::PARAM_LOB,);
+        
+        print_r($values);
+        
         $res = $db->insert(self::$fileTable, $values, $bind);
         return $res;
     }
