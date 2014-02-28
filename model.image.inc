@@ -223,8 +223,7 @@ class image extends db {
             'file_org' => PDO::PARAM_LOB, 
             'file' => PDO::PARAM_LOB,
             'file_thumb' => PDO::PARAM_LOB,);
-        
-        print_r($values);
+
         
         $res = $db->insert(self::$fileTable, $values, $bind);
         return $res;
