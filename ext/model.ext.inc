@@ -9,7 +9,7 @@ class image_ext extends image {
      *
      * @return boolean true on success or false on failure
      */
-    public static function insertFile ($values) {
+    public static function insertFile ($values = null) {
         $db = new db();
 
         //$_POST = html::specialDecode($values);

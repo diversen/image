@@ -174,7 +174,7 @@ class image extends db {
      *
      * @return boolean true on success or false on failure
      */
-    public static function insertFile () {
+    public static function insertFile ($values = null) {
         $db = new db();
 
         $_POST = html::specialDecode($_POST);
