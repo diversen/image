@@ -2,11 +2,6 @@
 
 
 /**
- * @ignore
- */
-include_once "coslib/upload.php";
-
-/**
  * class content files is used for keeping track of file changes
  * in db. Uses object fileUpload
  *
@@ -237,7 +232,6 @@ class image extends db {
      * @return type 
      */
     public static function scaleImage ($image, $thumb, $width){
-        include_once "imagescale.php";
         $res = imagescale::byX($image, $thumb, $width);
         if (!empty(imagescale::$errors)) self::$errors = imagescale::$errors;
         return $res;
@@ -248,7 +242,6 @@ class image extends db {
      * @param type $mode 
      */
     public static function validateInsert($mode = false){
-        //$_POST = html::specialEncode($_POST);
         if ($mode != 'update') {
             if (empty($_FILES['file']['name'])){
                 self::$errors[] = lang::translate('No file was specified');
