@@ -61,53 +61,60 @@ class image extends db {
     */
     public static function viewFileForm($method, $id = null, $values = array(), $caption = null){
         
-        html::formStartAry(array('id' => 'image_upload_form'));
+        html::$doUpload = true;
+        $h = new html();
+        
+        $h->formStartAry(array('id' => 'image_upload_form'));
         if ($method == 'delete' && isset($id)) {
             $legend = lang::translate('Delete image');
-            html::legend($legend);
-            html::submit('submit', lang::system('system_submit_delete'));
-            echo html::getStr();
+            $h->legend($legend);
+            $h->submit('submit', lang::system('system_submit_delete'));
+            echo $h->getStr();
             return;
         }
         
         if ($method == 'delete_all' && isset($id)) {
             $legend = lang::translate('Delete all images');
-            html::legend($legend);
-            html::submit('submit', lang::system('system_submit_delete'));
-            html::formEnd();
-            echo html::getStr();
+            $h->legend($legend);
+            $h->submit('submit', lang::system('system_submit_delete'));
+            $h->formEnd();
+            echo $h->getStr();
             return;
         }
         
         $legend = '';
         if (isset($id)) {
             $values = self::getSingleFileInfo($id);
-            html::init($values, 'submit'); 
+            $h->init($values, 'submit'); 
+            $h->legend($legend);
+            $h->label('abstract', lang::translate('Abstract'));
+            $h->textareaSmall('abstract');
             $legend = lang::translate('Edit image');
             $submit = lang::system('system_submit_update');
         } else {
-            html::init(html::specialEncode($_POST), 'submit'); 
+            $h->init(html::specialEncode($_POST), 'submit'); 
             $legend = lang::translate('Add image');
             $submit = lang::system('system_submit_add');
-        }
-        
-        html::legend($legend);
-        html::label('abstract', lang::translate('Abstract'));
-        html::textareaSmall('abstract');
-        
-        if (config::getModuleIni('image_user_set_scale')) {
-            html::label('scale_size', lang::translate('Image width in pixels, e.g. 100'));
-            html::text('scale_size');
-        }
-        
-        $bytes = config::getModuleIni('image_max_size');
-        html::fileWithLabel('file', $bytes);
             
-        html::submit('submit', $submit);
-        html::formEnd();
-        echo html::getStr();
+            if (config::getModuleIni('image_user_set_scale')) {
+                $h->label('scale_size', lang::translate('Image width in pixels, e.g. 100'));
+                $h->text('scale_size');
+            }
+
+            $bytes = config::getModuleIni('image_max_size');
+            $h->fileWithLabel('file', $bytes);
+            
+        }
+ 
+        $h->submit('submit', $submit);
+        $h->formEnd();
+        echo $h->getStr();
     }
     
+    /**
+     * return json encoded image rows from reference and parent_id
+     * @return string $json
+     */
     public static function rpcServer () {
         
         $reference = @$_GET['reference'];
@@ -125,8 +132,7 @@ class image extends db {
         foreach ($rows as $key => $val) {
             $rows[$key]['url_m'] = "/image/download/$val[id]/" . strings::utf8SlugString($val['title']);
             $rows[$key]['url_s'] = "/image/download/$val[id]/$val[title]?size=file_thumb";
-            
-            //$str = html::specialEncode($val['abstract']);
+
             $str = strings::sanitizeUrlRigid(html::specialDecode($val['abstract']));
             $rows[$key]['title'] = $str; 
             
@@ -211,7 +217,7 @@ class image extends db {
         $values['mimetype'] = $_FILES['file']['type'];
         $values['parent_id'] = self::$options['parent_id'];
         $values['reference'] = self::$options['reference'];
-        $values['abstract'] = $_POST['abstract'];
+        $values['abstract'] = '';//$_POST['abstract'];
         $values['user_id'] = session::getUserId();
         
         $bind = array(
@@ -230,9 +236,10 @@ class image extends db {
      * @return type 
      */
     public static function scaleImage ($image, $thumb, $width){
-        include_once "imagescale.php";
         $res = imagescale::byX($image, $thumb, $width);
-        if (!empty(imagescale::$errors)) self::$errors = imagescale::$errors;
+        if (!empty(imagescale::$errors)) { 
+            self::$errors = imagescale::$errors;
+        }
         return $res;
     }
 
@@ -241,7 +248,7 @@ class image extends db {
      * @param type $mode 
      */
     public static function validateInsert($mode = false){
-        //$_POST = html::specialEncode($_POST);
+
         if ($mode != 'update') {
             if (empty($_FILES['file']['name'])){
                 self::$errors[] = lang::translate('No file was specified');
@@ -422,8 +429,7 @@ class image extends db {
         $row = $db->selectOne(self::$fileTable, 'id', self::$fileId);
         return $row;
     }
-    // }}}
-    // {{{ updateModuleRelease()
+
     /**
      * method for updating a module in database
      * (access control is cheched in controller file)
