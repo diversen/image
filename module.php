@@ -264,8 +264,7 @@ class image extends db {
      *
      */
     public function deleteFile($id){
-        $db = new db();
-        $res = $db->delete(self::$fileTable, 'id', $id);
+        $res = db_q::delete(self::$fileTable)->filter( 'id =', $id)->exec();
         return $res;
     }
    
@@ -578,9 +577,8 @@ class image extends db {
     }
     
     public function deleteAll($parent, $reference){
-        $db = new db();
-        $search = array ('parent_id' => $parent, 'reference' => $reference);
-        $res = $db->delete(self::$fileTable, null, $search);
+        $search = array ('parent_id =' => $parent, 'reference =' => $reference);
+        $res = db_q::delete(self::$fileTable)->filterArray($search)->exec();
         return $res;
     }
     
