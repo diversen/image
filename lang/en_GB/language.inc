@@ -5,9 +5,9 @@
 
 $_COS_LANG_MODULE['Delete image'] = 'Delete image';
 $_COS_LANG_MODULE['Delete all images'] = 'Delete all images';
+$_COS_LANG_MODULE['Abstract'] = 'Abstract';
 $_COS_LANG_MODULE['Edit image'] = 'Edit image';
 $_COS_LANG_MODULE['Add image'] = 'Add image';
-$_COS_LANG_MODULE['Abstract'] = 'Abstract';
 $_COS_LANG_MODULE['Image width in pixels, e.g. 100'] = 'Image width in pixels, e.g. 100';
 $_COS_LANG_MODULE['No file was specified'] = 'No file was specified';
 $_COS_LANG_MODULE['Edit images'] = 'Edit images';
@@ -27,6 +27,3 @@ $_COS_LANG_MODULE['Image was updated'] = 'Image edited';
 
 
 // Translation of file /modules/image/delete_all.php
-
-
-// Translation of file /modules/image/model.image.inc
