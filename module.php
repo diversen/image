@@ -132,10 +132,8 @@ class image extends db {
         foreach ($rows as $key => $val) {
             $rows[$key]['url_m'] = "/image/download/$val[id]/" . strings::utf8SlugString($val['title']);
             $rows[$key]['url_s'] = "/image/download/$val[id]/$val[title]?size=file_thumb";
-
             $str = strings::sanitizeUrlRigid(html::specialDecode($val['abstract']));
             $rows[$key]['title'] = $str; 
-            
         }
         
         $photos = array ('images' => $rows);
@@ -646,7 +644,6 @@ class image extends db {
             moduleloader::setStatus(404);
             return;
         }
-        
         
         http::cacheHeaders();
         if (isset($file['mimetype']) && !empty($file['mimetype'])) {

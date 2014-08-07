@@ -1,0 +1,1 @@
+ALTER table image ADD column `verified` boolean DEFAULT 0;
