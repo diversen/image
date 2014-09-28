@@ -1,10 +1,10 @@
 <?php
 
 $_COS_LANG_MODULE['Delete image'] = 'Slet billede';
-$_COS_LANG_MODULE['Delete all images'] = 'Slet alle billeder';
-$_COS_LANG_MODULE['Abstract'] = 'Abstrakt';
-$_COS_LANG_MODULE['Edit image'] = 'Ret billede';
 $_COS_LANG_MODULE['Add image'] = 'Tilføj billede';
+$_COS_LANG_MODULE['Delete all images'] = 'Slet alle billeder';
+$_COS_LANG_MODULE['Edit image'] = 'Ret billede';
+$_COS_LANG_MODULE['Abstract'] = 'Abstrakt';
 $_COS_LANG_MODULE['Image width in pixels, e.g. 100'] = 'Bredde i px (fx 100).';
 $_COS_LANG_MODULE['No file was specified'] = 'Ingen fil valgt';
 $_COS_LANG_MODULE['Edit images'] = 'Rediger Billeder';

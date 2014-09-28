@@ -509,8 +509,14 @@ class image extends db {
         self::viewFileForm('insert');
     }
     
-    public static function viewFileFormInsertClean($options){
-        // $redirect = moduleloader::buildReferenceURL('/image/add', self::$options);
+    public static function viewFileFormInsertClean($options) {
+
+        if (isset($options['redirect'])) {
+            $redirect = $options['redirect'];
+        } else {
+            $redirect = '#!';
+        }
+
         if (isset($_POST['submit'])){
             self::validateInsert();
             if (!isset(self::$errors)){
