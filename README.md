@@ -8,4 +8,3 @@ to use it anywhere.
 
 Simple image captcha functionality.
 
-
