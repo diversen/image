@@ -659,3 +659,5 @@ class image extends db {
         die;
     }
 }
+
+class image_module extends image {}
