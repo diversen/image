@@ -7,7 +7,7 @@
  *
  * @package image
  */
-class image extends db {
+class image {
 
 
     public static $errors = null;
@@ -37,6 +37,13 @@ class image extends db {
         self::$fileTable = 'image';
         self::$maxsize = config::getModuleIni('image_max_size');
   
+    }
+    
+    public static function imageExists ($id, $reference) {
+        return db_q::select('image', 'id')->
+                filter('parent_id =', $id)->condition('AND')->
+                filter('reference =', $reference)->
+                fetchSingle();
     }
 
     public static function setFileId ($frag = 2){
@@ -141,8 +148,8 @@ class image extends db {
     }
     
     public static function getFullWebPath ($row, $size = null) {
-         $str = "/image/download/$row[id]/$row[title]";
-        //$str = "/image/download/$row[id]/" . strings::utf8SlugString($row['title']);
+       //$str = "/image/download/$row[id]/$row[title]";
+        $str = "/image/download/$row[id]/" . strings::utf8SlugString($row['title']);
         if ($size) {
             //$str.= "?size=$size";
         } else {
@@ -326,23 +333,23 @@ class image extends db {
     public static function displayFiles($rows, $options){
         
         $str = "";
-
+print_r($rows);
         foreach ($rows as $val){
             $title = lang::translate('Download');
             $title.= MENU_SUB_SEPARATOR_SEC;
             $title.= htmlspecialchars($val['title']);
             
-            $link_options = array ('title' => htmlspecialchars($val['abstract'])); 
-            $str.= html::createLink(self::$path . "/download/$val[id]/$val[title]", $title, $link_options);
+            $link_options = array('title' => htmlspecialchars($val['abstract']));
+            $str.= html::createLink($val['image_url'], $title, $link_options);
 
-                $options['id'] = $val['id'];
-                $url = moduleloader::buildReferenceURL('/image/edit', $options);     
-                $str.= MENU_SUB_SEPARATOR_SEC;
-                $str.= html::createLink($url, lang::system('system_submit_edit'));
-                $url = moduleloader::buildReferenceURL('/image/delete', $options);
-                $str.= MENU_SUB_SEPARATOR;
-                $str.= html::createLink($url, lang::system('system_submit_delete'));
-            
+            $options['id'] = $val['id'];
+            $url = moduleloader::buildReferenceURL('/image/edit', $options);
+            $str.= MENU_SUB_SEPARATOR_SEC;
+            $str.= html::createLink($url, lang::system('system_submit_edit'));
+            $url = moduleloader::buildReferenceURL('/image/delete', $options);
+            $str.= MENU_SUB_SEPARATOR;
+            $str.= html::createLink($url, lang::system('system_submit_delete'));
+
             $str.= "<br />\n";
         }
         
