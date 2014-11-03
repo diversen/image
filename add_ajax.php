@@ -49,10 +49,5 @@ if (!moduleloader::includeRefrenceModule()){
 
 $image = new image();
 $image->viewFileForm('insert');
-//print_r($options);
-//image::init($options);
-//image::viewIframeFileFormInsert($options);
-//$rows = image::getAllFilesInfo($options);
-//echo image::displayFiles($rows, $options);
 
 

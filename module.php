@@ -333,7 +333,6 @@ class image {
     public static function displayFiles($rows, $options){
         
         $str = "";
-print_r($rows);
         foreach ($rows as $val){
             $title = lang::translate('Download');
             $title.= MENU_SUB_SEPARATOR_SEC;
