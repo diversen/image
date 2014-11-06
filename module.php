@@ -107,9 +107,12 @@ class image {
                 $h->label('scale_size', lang::translate('Image width in pixels, e.g. 100'));
                 $h->text('scale_size');
             }
-
+            
             $bytes = config::getModuleIni('image_max_size');
             $h->fileWithLabel('file', $bytes);
+            
+            $h->label('abstract', lang::translate('Abstract'));
+            $h->textareaSmall('abstract');
             
         }
  
@@ -222,7 +225,7 @@ class image {
         $values['mimetype'] = $_FILES['file']['type'];
         $values['parent_id'] = self::$options['parent_id'];
         $values['reference'] = self::$options['reference'];
-        $values['abstract'] = '';//$_POST['abstract'];
+        $values['abstract'] = html::specialDecode($_POST['abstract']);
         $values['user_id'] = session::getUserId();
         
         $bind = array(
@@ -610,7 +613,7 @@ class image {
         self::viewFileForm('delete_all', self::$fileId);
     }
 
-    public function viewFileFormUpdate(){
+    public static function viewFileFormUpdate(){
         $redirect = moduleloader::buildReferenceURL('/image/add', self::$options);
         if (isset($_POST['submit'])){
             self::validateInsert('update');
@@ -618,9 +621,7 @@ class image {
                 $res = self::updateFile();
                 if ($res){
                     session::setActionMessage(lang::translate('Image was updated'));
-                    $header = "Location: " . $redirect;
-                    header($header);
-                    exit;
+                    http::locationHeader($redirect);
                 } else {
                     html::errors(self::$errors);
                 }
