@@ -29,6 +29,16 @@ class image {
     function __construct($options = null){
          self::$options = $options;
     }
+    
+    public function rpcAction () {
+        image::rpcServer();
+        die;
+    }
+    
+    public function ajaxhtmlAction ($url) {
+        $h = new html();
+        echo $h->fileHtml5($url);
+    }
 
     public static function init ($options = null){
         self::$options = $options;
@@ -141,7 +151,7 @@ class image {
                 );
         foreach ($rows as $key => $val) {
             $rows[$key]['url_m'] = "/image/download/$val[id]/" . strings::utf8SlugString($val['title']);
-            $rows[$key]['url_s'] = "/image/download/$val[id]/$val[title]?size=file_thumb";
+            $rows[$key]['url_s'] = "/image/download/$val[id]/" . strings::utf8SlugString($val['title']) . "?size=file_thumb";
             $str = strings::sanitizeUrlRigid(html::specialDecode($val['abstract']));
             $rows[$key]['title'] = $str; 
         }
@@ -150,15 +160,14 @@ class image {
         echo json_encode($photos);
     }
     
+    /**
+     * get full web path to a image.
+     * @param type $row
+     * @param type $size
+     * @return string
+     */
     public static function getFullWebPath ($row, $size = null) {
-       //$str = "/image/download/$row[id]/$row[title]";
         $str = "/image/download/$row[id]/" . strings::utf8SlugString($row['title']);
-        if ($size) {
-            //$str.= "?size=$size";
-        } else {
-            //$str.= "?size=file_med";
-        }
-        //echo $str; die;
         return $str;
     }
     
@@ -183,11 +192,11 @@ class image {
      *
      * @return boolean true on success or false on failure
      */
-    public static function insertFile () {
+    public static function insertFile ($input = 'file') {
         $db = new db();
 
         $_POST = html::specialDecode($_POST);
-        $options['filename'] = 'file';
+        $options['filename'] = $input;
         $options['maxsize'] = self::$maxsize;
         $options['allow_mime'] = self::$allowMime;
         
@@ -495,27 +504,6 @@ class image {
         
         $res = $db->update(self::$fileTable, $values, self::$fileId, $bind);
         return $res;
-    }
-    
-    public static function viewIframeFileFormInsert($options){
-        //$options['redirect'] = 
-        $redirect = moduleloader::buildReferenceURL('/image/add_ajax', self::$options);
-        if (isset($_POST['submit'])){
-            self::validateInsert();
-            if (!isset(self::$errors)){
-                $res = self::insertFile($options);
-                if ($res){
-                    session::setActionMessage(lang::translate('Image was added'));
- 
-                    http::locationHeader($redirect);
-                } else {
-                    html::errors(self::$errors);
-                }
-            } else {
-                html::errors(self::$errors);
-            }
-        }
-        self::viewFileForm('insert');
     }
     
     public static function viewFileFormInsertClean($options) {
