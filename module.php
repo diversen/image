@@ -45,16 +45,15 @@ class image {
      * uploads from an ajax request. 
      */
     public function ajaxAction() {
-        /**
-         * view file for adding files
-         * @package    image
-         */
+        
+        // check basic access
         if (!session::checkAccessFromModuleIni('image_allow_edit')) {
             moduleloader::setStatus(403);
             echo lang::translate("Access denied");
             die();
         }
 
+        // if user - check if user owns parent reference
         $allow = config::getModuleIni('image_allow_edit');
         if ($allow == 'user') {
 
@@ -70,6 +69,7 @@ class image {
         $options['parent_id'] = $_GET['parent_id'];
         $options['reference'] = $_GET['reference'];
 
+        // insert image
         image::init($options);
         image::validateInsert();
         if (!isset(image::$errors)) {
