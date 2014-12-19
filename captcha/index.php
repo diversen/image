@@ -1,5 +1,6 @@
 <?php
 
+use diversen\image\captcha;
 // -------------------------------------------------------------------
 // captcha.php
 // This file gets the request and initialize the CAPTCHA class
@@ -15,5 +16,6 @@ header("Cache-Control: post-check=0, pre-check=0", false);
 header("Pragma: no-cache");
 
 $str = $_SESSION['cstr'];
-$captcha = new Image_Captcha($str);
+$captcha = new captcha();
+$captcha->create($str);
 die;
