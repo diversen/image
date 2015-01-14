@@ -1,6 +1,6 @@
 <?php
 
-
+use diversen\upload\blob as upload_blob;
 /**
  * class content files is used for keeping track of file changes
  * in db. Uses object fileUpload
@@ -57,8 +57,8 @@ class image {
         $allow = config::getModuleIni('image_allow_edit');
         if ($allow == 'user') {
 
-            $table = moduleloader::moduleReferenceToTable($_GET['reference']);
-            if (!user::ownID($table, $_GET['parent_id'], session::getUserId())) {
+            //$table = moduleloader::moduleReferenceToTable($_GET['reference']);
+            if (!user::ownID('image', $_GET['parent_id'], session::getUserId())) {
                 moduleloader::setStatus(403);
                 echo lang::translate("Access denied");
                 die();
