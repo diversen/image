@@ -17,7 +17,7 @@ class image_ext extends image {
         $options['maxsize'] = self::$maxsize;
         $options['allow_mime'] = self::$allowMime;
 
-        $tmp_file = "/tmp/" . uniqid();
+        $tmp_file = sys_get_temp_dir() . "/" . uniqid();
         file_put_contents($tmp_file, $values['file_org']);
          
         self::scaleImage(
