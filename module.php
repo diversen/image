@@ -277,7 +277,9 @@ class image {
             echo "<td>" . self::getImgTag($row, 'file_thumb') . "</td>";
             echo "<td>"; 
             echo user::getAdminLink($row['user_id']);
-            echo MENU_SUB_SEPARATOR;
+            echo "<br />";
+            echo user::getProfileLink($row['user_id']);
+            echo "<br />";
             echo html::createLink("/image/admin?delete=$row[id]&from=$from", lang::translate('Delete image'));
             echo "</td>";
             echo "</tr>";
