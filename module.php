@@ -248,19 +248,41 @@ class image {
             return false;
         }
         
+        layout::attachMenuItem('module', 
+                array(
+                    'title' => lang::translate('Images'), 
+                    'url' => '/image/admin'));
+        
         $per_page = 10;
         $total = db_q::numRows('image')->fetch();
         $p = new pagination($total);
+
+        $from = @$_GET['from'];
+        if (isset($_GET['delete'])) {
+            $this->deleteFile($_GET['delete']);    
+            http::locationHeader("/image/admin?from=$from", 
+                    lang::translate('Image deleted'));
+        }
+        
+        
         
         $rows = db_q::select('image', 'id, title, user_id')->
                 order('created', 'DESC')->
                 limit($p->from, $per_page)->
                 fetch();
         
+        echo "<table>";
         foreach ($rows as $row) {
-            echo self::getImgTag($row, 'file_thumb');
+            echo "<tr>";
+            echo "<td>" . self::getImgTag($row, 'file_thumb') . "</td>";
+            echo "<td>"; 
             echo user::getAdminLink($row['user_id']);
+            echo MENU_SUB_SEPARATOR;
+            echo html::createLink("/image/admin?delete=$row[id]&from=$from", lang::translate('Delete image'));
+            echo "</td>";
+            echo "</tr>";
         }
+        echo "</table>";
         
         echo $p->getPagerHTML();
         
