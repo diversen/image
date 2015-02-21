@@ -31,7 +31,7 @@ class image {
     }
     
     public function rpcAction () {
-        image::rpcServer();
+        self::rpcServer();
         die;
     }
     
@@ -62,10 +62,126 @@ class image {
         layout::setMenuFromClassPath($options['reference']);
 
         // display image module content
-        image::init($options);
-        image::viewFileFormInsert($options);
-        $rows = image::getAllFilesInfo($options);
-        echo image::displayFiles($rows, $options);
+        self::init($options);
+        self::viewFileFormInsert($options);
+        $rows = self::getAllFilesInfo($options);
+        echo self::displayFiles($rows, $options);
+    }
+
+    /**
+     * delete action
+     * @return type
+     */
+    public function deleteAction() {
+        if (!session::checkAccessFromModuleIni('image_allow_edit')) {
+            return;
+        }
+
+        moduleloader::$referenceOptions = array('edit_link' => 'true');
+        if (!moduleloader::includeRefrenceModule()) {
+            moduleloader::$status['404'] = true;
+            return;
+        }
+
+        $options = moduleloader::getReferenceInfo();
+        $allow = config::getModuleIni('image_allow_edit');
+
+        // if allow is set to user - this module only allow user to edit his own images
+        if ($allow == 'user') {
+            //$table = moduleloader::moduleReferenceToTable($options['reference']);
+            if (!user::ownID('image', $options['inline_parent_id'], session::getUserId())) {
+                moduleloader::setStatus(403);
+                return;
+            }
+        }
+
+        // we now have a refrence module and a parent id wo work from.
+        $link = moduleloader::$referenceLink;
+        $headline = lang::translate('Delete image') . MENU_SUB_SEPARATOR_SEC . $link;
+        html::headline($headline);
+
+        template::setTitle(lang::translate('Delete image'));
+
+        self::setFileId($frag = 3);
+        self::init($options);
+        self::viewFileFormDelete();
+    }
+
+    /**
+     * delete_all action
+     * @return type
+     */
+    public function delete_allAction() {
+        if (!session::checkAccessFromModuleIni('image_allow_edit')) {
+            return;
+        }
+
+        moduleloader::$referenceOptions = array('type' => 'edit');
+        if (!moduleloader::includeRefrenceModule()) {
+            moduleloader::$status['404'] = true;
+            return;
+        }
+
+        // we now have a refrence module and a parent id wo work from.
+        $link = moduleloader::$referenceLink;
+
+        $headline = lang::translate('Delete all images') . MENU_SUB_SEPARATOR_SEC . $link;
+        html::headline($headline);
+
+        template::setTitle(lang::translate('Delete all images'));
+
+        $options = moduleloader::getReferenceInfo();
+
+        self::setFileId($frag = 3);
+        self::init($options);
+        self::viewFileFormDeleteAll();
+    }
+
+    /**
+     * edit action
+     * @return void
+     */
+    public function editAction() {
+        
+        if (!session::checkAccessFromModuleIni('image_allow_edit')) {
+            return;
+        }
+
+        moduleloader::$referenceOptions = array('edit_link' => 'true');
+        if (!moduleloader::includeRefrenceModule()) {
+            moduleloader::$status['404'] = true;
+            return;
+        }
+
+        $options = moduleloader::getReferenceInfo();
+        $allow = config::getModuleIni('image_allow_edit');
+
+        // if allow is set to user - this module only allow user to edit his own images
+        if ($allow == 'user') {
+            if (!user::ownID('image', $options['inline_parent_id'], session::getUserId())) {
+                moduleloader::setStatus(403);
+                return;
+            }
+        }
+
+        $link = moduleloader::$referenceLink;
+        $headline = lang::translate('Edit image') . MENU_SUB_SEPARATOR_SEC . $link;
+        html::headline($headline);
+        template::setTitle(lang::translate('Edit image'));
+
+        self::setFileId($frag = 3);
+
+        // set parent modules menu
+        layout::setMenuFromClassPath($options['reference']);
+        self::init($options);
+        self::viewFileFormUpdate();
+    }
+
+    /**
+     * download controller
+     */
+    public function downloadAction() {
+        self::downloadController();
     }
 
     /**
@@ -107,21 +223,30 @@ class image {
         $options['reference'] = $_GET['reference'];
 
         // insert image
-        image::init($options);
-        image::validateInsert();
-        if (!isset(image::$errors)) {
-            $res = @image::insertFile();
+        self::init($options);
+        self::validateInsert();
+        if (!isset(self::$errors)) {
+            $res = @self::insertFile();
             if ($res) {
                 echo lang::translate('Image was added');
             } else {
-                echo reset(image::$errors);
+                echo reset(self::$errors);
             }
         } else {
-            echo reset(image::$errors);
+            echo reset(self::$errors);
         }
         die();
     }
+    
+    public function adminAction () {
+        echo "Hello world";
+    }
+    
 
+    /**
+     * init
+     * @param type $options
+     */
     public static function init ($options = null){
         self::$options = $options;
         self::$scaleWidth = config::getModuleIni('image_scale_width');
@@ -131,6 +256,12 @@ class image {
   
     }
     
+    /**
+     * check if image exists
+     * @param int $id
+     * @param string $reference
+     * @return boolean
+     */
     public static function imageExists ($id, $reference) {
         return db_q::select('image', 'id')->
                 filter('parent_id =', $id)->condition('AND')->
@@ -138,10 +269,21 @@ class image {
                 fetchSingle();
     }
 
+    /**
+     * set a files id
+     * @param string $frag
+     */
     public static function setFileId ($frag = 2){
         self::$fileId = uri::$fragments[$frag];
     }
     
+    /**
+     * get a image html tag
+     * @param array $row
+     * @param string $size
+     * @param array $options
+     * @return string $html image tag
+     */
     public static function getImgTag ($row, $size = "file_org", $options = array ()) {
         return $img_tag = html::createHrefImage(
                 "/image/download/$row[id]/$row[title]?size=file_org", 
@@ -282,7 +424,7 @@ class image {
         $options['maxsize'] = self::$maxsize;
         $options['allow_mime'] = self::$allowMime;
         
-        $med_size = image::getMedSize();
+        $med_size = self::getMedSize();
 
         // get fp - will also check for error in upload
         $fp = upload_blob::getFP('file', $options);
@@ -718,11 +860,11 @@ class image {
 
     public static function downloadController (){
 
-        image::init();
-        image::setFileId($frag = 2);
+        self::init();
+        self::setFileId($frag = 2);
         
         $size = self::getImageSize(); 
-        $file = image::getFile($size);
+        $file = self::getFile($size);
         if (empty($file)) {
             moduleloader::setStatus(404);
             return;
