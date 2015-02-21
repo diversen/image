@@ -1,7 +1,7 @@
 <?php
 
 /**
- * installer file for content module
+ * install file for image module
  *
  * @package    files
  */

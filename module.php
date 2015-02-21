@@ -1,6 +1,7 @@
 <?php
 
 use diversen\upload\blob as upload_blob;
+use diversen\pagination;
 /**
  * class content files is used for keeping track of file changes
  * in db. Uses object fileUpload
@@ -238,8 +239,32 @@ class image {
         die();
     }
     
+    /**
+     * admin action for checking user image uploads
+     * @return boolean
+     */
     public function adminAction () {
-        echo "Hello world";
+        if (!session::checkAccess('admin')) {
+            return false;
+        }
+        
+        $per_page = 10;
+        $total = db_q::numRows('image')->fetch();
+        $p = new pagination($total);
+        
+        $rows = db_q::select('image', 'id, title, user_id')->
+                order('created', 'DESC')->
+                limit($p->from, $per_page)->
+                fetch();
+        
+        foreach ($rows as $row) {
+            echo self::getImgTag($row, 'file_thumb');
+            echo user::getAdminLink($row['user_id']);
+        }
+        
+        echo $p->getPagerHTML();
+        
+        
     }
     
 
@@ -508,14 +533,7 @@ class image {
         $res = db_q::delete(self::$fileTable)->filter( 'id =', $id)->exec();
         return $res;
     }
-   
-    public static function subModulePreContent ($options){
-        return '';
-        $rows = self::getAllFilesInfo($options);
-        if (session::isAdmin()){
-            return self::displayFiles($rows, $options);
-        }
-    }
+
     
     /**
      * get admin when operating as a sub module
@@ -543,21 +561,6 @@ class image {
         $ary['url'] = $url;
         $ary['text'] = $text;
         return $ary;
-    }
-    
-    /**
-     * deletes images from a reference and a parent_id
-     * @param type $parent
-     * @param type $reference
-     * @return type
-     */
-    public static function deleteReferenceId($parent, $reference) {
-
-        return db_q::setDelete('image')->filter('reference =', $reference)
-                ->condition('AND')
-                ->filter('parent_id =', $parent)
-                ->exec();
-               
     }
 
     /**
@@ -597,31 +600,11 @@ class image {
         return $str;
     }
     
-    public static function subModuleInlineContent($options){
-        //self::init($options);
-        return '';
-        if (config::getModuleIni('image_submodule_disable_insert')) {
-            return '';
-        }
-        
-        $str = '';
-        $files = self::getAllFilesInfo($options);
-        if (!empty($files)){
-            foreach ($files as $val) {
-                $file_url = self::$path . "/download/$val[id]/$val[title]";
-                $str.="<div id=\"content_image\">\n";
-                $options = array (
-                    'width' => self::$scaleWidth,
-                    'alt' => html::specialEncode($val['abstract']),
-                    'title' => html::specialEncode($val['abstract'])
-                    );
-                $str.= html::createImage($file_url, $options);
-                $str.="</div><br />";
-            }
-        }
-        return $str;
-    }
-
+    /**
+     * get info about all files from array with parent_id and reference
+     * @param array $options
+     * @return array $rows array of rows
+     */
     public static function getAllFilesInfo($options){
         $db = new db();
         $search = array (
@@ -638,8 +621,15 @@ class image {
         return $rows;
     }
 
+    /**
+     * get info about a single image
+     * @param int $id
+     * @return array $row
+     */
     public static function getSingleFileInfo($id = null){
-        if (!$id) $id = self::$fileId;
+        if (!$id) { 
+            $id = self::$fileId;
+        }
         $db = new db();
         $search = array (
             'id' => $id
@@ -650,16 +640,16 @@ class image {
         return $row;
     }
 
-    // {{{ getFile()
     /**
-     * method for fetching one file
-     *
-     * @return array assoc row with selected module
+     * method for fetching one full file row
+     * @return array $row
      */
     public static function getFile($size = null){
         $db = new db();
         
-        if (!$size) $size = 'file';
+        if (!$size) { 
+            $size = 'file';
+        }
         if ($size != 'file' || $size != 'file_thumb' || $size != 'file_org') {
             $size = 'file';
         }
@@ -671,9 +661,7 @@ class image {
 
     /**
      * method for updating a module in database
-     * (access control is cheched in controller file)
-     *
-     * @return boolean true on success or false on failure
+     * @return boolean $res true on success or false on failure
      */
 
     public static function updateFile () {
@@ -704,15 +692,14 @@ class image {
                     $med_size);
             $fp_med = fopen($_FILES['file']['tmp_name'] . "-med", 'rb');
             $values['file'] = $fp_med;
-            //die;
+
             self::scaleImage(
                     $_FILES['file']['tmp_name'], 
                     $_FILES['file']['tmp_name'] . "-thumb", 
                     config::getModuleIni('image_scale_width_thumb'));
             $fp_thumb = fopen($_FILES['file']['tmp_name'] . "-thumb", 'rb'); 
-        //}
+        
             $values['file_thumb'] = $fp_thumb;
-            //if (!$res) return false;
 
             $values['title'] = $_FILES['file']['name'];
             $values['mimetype'] = $_FILES['file']['type'];
@@ -730,6 +717,10 @@ class image {
         return $res;
     }
     
+    /**
+     * display a insert file form
+     * @param type $options
+     */
     public static function viewFileFormInsertClean($options) {
 
         if (isset($options['redirect'])) {
