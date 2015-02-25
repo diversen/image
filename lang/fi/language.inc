@@ -1,10 +1,12 @@
 <?php
 
-$_COS_LANG_MODULE['Delete image'] = 'Poista tämä kuva';
 $_COS_LANG_MODULE['Add image'] = 'Lisää kuva';
+$_COS_LANG_MODULE['Delete image'] = 'Poista tämä kuva';
 $_COS_LANG_MODULE['Delete all images'] = 'Poista kaikki kuvat';
 $_COS_LANG_MODULE['Edit image'] = 'Muokkaa kuvaa';
 $_COS_LANG_MODULE['Image was added'] = 'Kuva lisätty';
+$_COS_LANG_MODULE['Images'] = 'Kuvat';
+$_COS_LANG_MODULE['Image deleted'] = 'Kuva poistettu';
 $_COS_LANG_MODULE['Abstract'] = 'Abstrakti';
 $_COS_LANG_MODULE['Image width in pixels, e.g. 100'] = 'Leveys px (esim. 100).';
 $_COS_LANG_MODULE['No file was specified'] = 'Tiedostoa ei valittu';
