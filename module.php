@@ -2,6 +2,8 @@
 
 use diversen\upload\blob as upload_blob;
 use diversen\pagination;
+use diversen\db\q as q;
+
 /**
  * class content files is used for keeping track of file changes
  * in db. Uses object fileUpload
@@ -254,7 +256,7 @@ class image {
                     'url' => '/image/admin'));
         
         $per_page = 10;
-        $total = db_q::numRows('image')->fetch();
+        $total = q::numRows('image')->fetch();
         $p = new pagination($total);
 
         $from = @$_GET['from'];
@@ -266,7 +268,7 @@ class image {
         
         
         
-        $rows = db_q::select('image', 'id, title, user_id')->
+        $rows = q::select('image', 'id, title, user_id')->
                 order('created', 'DESC')->
                 limit($p->from, $per_page)->
                 fetch();
@@ -312,7 +314,7 @@ class image {
      * @return boolean
      */
     public static function imageExists ($id, $reference) {
-        return db_q::select('image', 'id')->
+        return q::select('image', 'id')->
                 filter('parent_id =', $id)->condition('AND')->
                 filter('reference =', $reference)->
                 fetchSingle();
@@ -554,7 +556,7 @@ class image {
      *
      */
     public function deleteFile($id){
-        $res = db_q::delete(self::$fileTable)->filter( 'id =', $id)->exec();
+        $res = q::delete(self::$fileTable)->filter( 'id =', $id)->exec();
         return $res;
     }
 
@@ -818,7 +820,7 @@ class image {
     
     public function deleteAll($parent, $reference){
         $search = array ('parent_id =' => $parent, 'reference =' => $reference);
-        $res = db_q::delete(self::$fileTable)->filterArray($search)->exec();
+        $res = q::delete(self::$fileTable)->filterArray($search)->exec();
         return $res;
     }
     
