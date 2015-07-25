@@ -3,6 +3,7 @@
 use diversen\upload\blob as upload_blob;
 use diversen\pagination;
 use diversen\db\q as q;
+use diversen\imagescale;
 
 /**
  * class content files is used for keeping track of file changes
