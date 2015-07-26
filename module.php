@@ -55,7 +55,7 @@ class image {
         }
 
         $options = moduleloader::getReferenceInfo();
-        $allow = config::getModuleIni('image_allow_edit');
+        $allow = conf::getModuleIni('image_allow_edit');
 
         // set headline and title
         $headline = lang::translate('Add image') . MENU_SUB_SEPARATOR_SEC . moduleloader::$referenceLink;
@@ -88,7 +88,7 @@ class image {
         }
 
         $options = moduleloader::getReferenceInfo();
-        $allow = config::getModuleIni('image_allow_edit');
+        $allow = conf::getModuleIni('image_allow_edit');
 
         // if allow is set to user - this module only allow user to edit his own images
         if ($allow == 'user') {
@@ -158,7 +158,7 @@ class image {
         }
 
         $options = moduleloader::getReferenceInfo();
-        $allow = config::getModuleIni('image_allow_edit');
+        $allow = conf::getModuleIni('image_allow_edit');
 
         // if allow is set to user - this module only allow user to edit his own images
         if ($allow == 'user') {
@@ -211,7 +211,7 @@ class image {
         }
 
         // if user - check if user owns parent reference
-        $allow = config::getModuleIni('image_allow_edit');
+        $allow = conf::getModuleIni('image_allow_edit');
         if ($allow == 'user') {
 
             //$table = moduleloader::moduleReferenceToTable($_GET['reference']);
@@ -301,10 +301,10 @@ class image {
      */
     public static function init ($options = null){
         self::$options = $options;
-        self::$scaleWidth = config::getModuleIni('image_scale_width');
+        self::$scaleWidth = conf::getModuleIni('image_scale_width');
         self::$path = '/image';
         self::$fileTable = 'image';
-        self::$maxsize = config::getModuleIni('image_max_size');
+        self::$maxsize = conf::getModuleIni('image_max_size');
   
     }
     
@@ -389,12 +389,12 @@ class image {
             $legend = lang::translate('Add image');
             $submit = lang::system('system_submit_add');
             
-            if (config::getModuleIni('image_user_set_scale')) {
+            if (conf::getModuleIni('image_user_set_scale')) {
                 $h->label('scale_size', lang::translate('Image width in pixels, e.g. 100'));
                 $h->text('scale_size');
             }
             
-            $bytes = config::getModuleIni('image_max_size');
+            $bytes = conf::getModuleIni('image_max_size');
             $h->fileWithLabel('file', $bytes);
             
             $h->label('abstract', lang::translate('Abstract'));
@@ -457,7 +457,7 @@ class image {
             unset($_POST['scale_size']);
         }
         if (!$med_size) {
-            $med_size = config::getModuleIni('image_scale_width');
+            $med_size = conf::getModuleIni('image_scale_width');
         }
         return $med_size;
     }
@@ -502,7 +502,7 @@ class image {
         self::scaleImage(
                 $_FILES['file']['tmp_name'], 
                 $_FILES['file']['tmp_name'] . "-thumb", 
-                config::getModuleIni('image_scale_width_thumb'));
+                conf::getModuleIni('image_scale_width_thumb'));
         $fp_thumb = fopen($_FILES['file']['tmp_name'] . "-thumb", 'rb'); 
         $values['file_thumb'] = $fp_thumb;
         
@@ -710,7 +710,7 @@ class image {
             $values['file_org'] = $fp;
             
             if (empty($med_size)) {
-                $med_size = config::getModuleIni('image_scale_width');
+                $med_size = conf::getModuleIni('image_scale_width');
             }
 
             self::scaleImage(
@@ -723,7 +723,7 @@ class image {
             self::scaleImage(
                     $_FILES['file']['tmp_name'], 
                     $_FILES['file']['tmp_name'] . "-thumb", 
-                    config::getModuleIni('image_scale_width_thumb'));
+                    conf::getModuleIni('image_scale_width_thumb'));
             $fp_thumb = fopen($_FILES['file']['tmp_name'] . "-thumb", 'rb'); 
         
             $values['file_thumb'] = $fp_thumb;
@@ -778,7 +778,7 @@ class image {
      * @param type $options
      */
     public static function viewFileFormInsert($options){
-        if (config::getModuleIni('image_redirect_parent')) {
+        if (conf::getModuleIni('image_redirect_parent')) {
             $redirect = moduleloader_reference::getParentEditUrlFromOptions(self::$options);
         } else {
             $redirect = moduleloader::buildReferenceURL('/image/add', self::$options);

@@ -23,13 +23,13 @@ class image_ext extends image {
         self::scaleImage(
                     $tmp_file, 
                     $tmp_file . "-med", 
-                    config::getModuleIni('image_scale_width'));    
+                    conf::getModuleIni('image_scale_width'));    
         $values['file'] = file_get_contents($tmp_file . "-med");
         
         self::scaleImage(
                     $tmp_file, 
                     $tmp_file . "-thumb", 
-                    config::getModuleIni('image_scale_width_thumb'));
+                    conf::getModuleIni('image_scale_width_thumb'));
         $values['file_thumb'] = file_get_contents($tmp_file . "-thumb");
 
         unlink($tmp_file); 
