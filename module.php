@@ -57,6 +57,15 @@ class image {
         $options = moduleloader::getReferenceInfo();
         $allow = conf::getModuleIni('image_allow_edit');
 
+        // if allow is set to user - this module only allow user to edit his own images
+        if ($allow == 'user') {
+            $table = moduleloader::moduleReferenceToTable($options['reference']);
+            if (!user::ownID($table, $options['parent_id'], session::getUserId())) {
+                moduleloader::setStatus(403);
+                return;
+            }
+        }
+
         // set headline and title
         $headline = lang::translate('Add image') . MENU_SUB_SEPARATOR_SEC . moduleloader::$referenceLink;
         html::headline($headline);
@@ -128,13 +137,23 @@ class image {
 
         // we now have a refrence module and a parent id wo work from.
         $link = moduleloader::$referenceLink;
+        
+        $options = moduleloader::getReferenceInfo();
+        $allow = conf::getModuleIni('image_allow_edit');
+        
+                // if allow is set to user - this module only allow user to edit his own images
+        if ($allow == 'user') {
+            $table = moduleloader::moduleReferenceToTable($options['reference']);
+            if (!user::ownID($table, $options['parent_id'], session::getUserId())) {
+                moduleloader::setStatus(403);
+                return;
+            }
+        }
 
         $headline = lang::translate('Delete all images') . MENU_SUB_SEPARATOR_SEC . $link;
         html::headline($headline);
-
+        
         template::setTitle(lang::translate('Delete all images'));
-
-        $options = moduleloader::getReferenceInfo();
 
         self::setFileId($frag = 3);
         self::init($options);
