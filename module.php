@@ -1,9 +1,21 @@
 <?php
 
-use diversen\upload\blob as upload_blob;
+use diversen\upload\blob;
 use diversen\pagination;
-use diversen\db\q as q;
+use diversen\db\q;
 use diversen\imagescale;
+use diversen\conf;
+use diversen\html;
+use diversen\lang;
+use diversen\db;
+use diversen\session;
+use diversen\http;
+use diversen\strings;
+use diversen\uri;
+use diversen\moduleloader;
+use diversen\template;
+use diversen\user;
+use diversen\layout;
 
 /**
  * class content files is used for keeping track of file changes
@@ -498,9 +510,9 @@ class image {
         $med_size = self::getMedSize();
 
         // get fp - will also check for error in upload
-        $fp = upload_blob::getFP('file', $options);
+        $fp = blob::getFP('file', $options);
         if (!$fp) {
-            self::$errors = upload_blob::$errors;
+            self::$errors = blob::$errors;
             return false;
         } 
         
@@ -720,9 +732,9 @@ class image {
             $options['allow_mime'] = self::$allowMime;
 
             // get fp - will also check for error in upload
-            $fp = upload_blob::getFP('file', $options);
+            $fp = blob::getFP('file', $options);
             if (!$fp) {
-                self::$errors = upload_blob::$errors;
+                self::$errors = blob::$errors;
                 return false;
             } 
             
