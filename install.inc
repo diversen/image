@@ -1,5 +1,6 @@
 <?php
 
+use diversen\lang;
 /**
  * install file for image module
  *
