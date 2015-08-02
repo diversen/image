@@ -1,5 +1,9 @@
 <?php
 
+use diversen\conf;
+use diversen\db;
+use diversen\moduleloader;
+
 moduleloader::includeModule('image');
 
 class image_ext extends image {
