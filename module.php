@@ -47,7 +47,27 @@ class image {
     }
     
     public function rpcAction () {
-        self::rpcServer();
+        $reference = @$_GET['reference'];
+        $parent_id = @$_GET['parent_id'];
+        
+        if (empty($reference) || empty($parent_id)) {
+            return;
+        }
+        
+        $rows = self::getAllFilesInfo(
+                array(
+                    'reference' => $reference, 
+                    'parent_id' => $parent_id)
+                );
+        foreach ($rows as $key => $val) {
+            $rows[$key]['url_m'] = "/image/download/$val[id]/" . strings::utf8SlugString($val['title']);
+            $rows[$key]['url_s'] = "/image/download/$val[id]/" . strings::utf8SlugString($val['title']) . "?size=file_thumb";
+            $str = strings::sanitizeUrlRigid(html::specialDecode($val['abstract']));
+            $rows[$key]['title'] = $str; 
+        }
+        
+        $photos = array ('images' => $rows);
+        echo json_encode($photos);
         die;
     }
     
@@ -68,10 +88,18 @@ class image {
 
         $options = moduleloader::getReferenceInfo();
         $allow = conf::getModuleIni('image_allow_edit');
-
+        
         // if allow is set to user - this module only allow user to edit his own images
         if ($allow == 'user') {
             $table = moduleloader::moduleReferenceToTable($options['reference']);
+            
+            // check if reference module is allowed to access image module
+            if (!$this->checkReferenceTable($table)) {
+                moduleloader::setStatus(403);
+                return;
+            }
+            
+            
             if (!user::ownID($table, $options['parent_id'], session::getUserId())) {
                 moduleloader::setStatus(403);
                 return;
@@ -91,6 +119,26 @@ class image {
         self::viewFileFormInsert($options);
         $rows = self::getAllFilesInfo($options);
         echo self::displayFiles($rows, $options);
+    }
+    
+    /**
+     * check which module references are allowed to access image module
+     * notice: if this ini setting is not set any module will be able to reference
+     * the image module. This can lead to errors. So it should be set. 
+     * @param string $table the db table which will make references to image, e.g. blog 
+     * @return boolean $res
+     */
+    public function checkReferenceTable ($table) {
+        
+        $allow = conf::getModuleIni('image_allow_reference');
+        if (!$allow) {
+            return true;
+        }   
+        $allow = explode(',', $allow);
+        if (in_array($table, $allow)) {
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -444,27 +492,7 @@ class image {
      */
     public static function rpcServer () {
         
-        $reference = @$_GET['reference'];
-        $parent_id = @$_GET['parent_id'];
-        
-        if (empty($reference) || empty($parent_id)) {
-            return;
-        }
-        
-        $rows = self::getAllFilesInfo(
-                array(
-                    'reference' => $reference, 
-                    'parent_id' => $parent_id)
-                );
-        foreach ($rows as $key => $val) {
-            $rows[$key]['url_m'] = "/image/download/$val[id]/" . strings::utf8SlugString($val['title']);
-            $rows[$key]['url_s'] = "/image/download/$val[id]/" . strings::utf8SlugString($val['title']) . "?size=file_thumb";
-            $str = strings::sanitizeUrlRigid(html::specialDecode($val['abstract']));
-            $rows[$key]['title'] = $str; 
-        }
-        
-        $photos = array ('images' => $rows);
-        echo json_encode($photos);
+
     }
     
     /**
