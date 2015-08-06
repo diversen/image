@@ -440,7 +440,7 @@ class image {
         if ($method == 'delete' && isset($id)) {
             $legend = lang::translate('Delete image');
             $h->legend($legend);
-            $h->submit('submit', lang::system('system_submit_delete'));
+            $h->submit('submit', lang::translate('Delete'));
             echo $h->getStr();
             return;
         }
@@ -448,7 +448,7 @@ class image {
         if ($method == 'delete_all' && isset($id)) {
             $legend = lang::translate('Delete all images');
             $h->legend($legend);
-            $h->submit('submit', lang::system('system_submit_delete'));
+            $h->submit('submit', lang::translate('Delete'));
             $h->formEnd();
             echo $h->getStr();
             return;
@@ -462,11 +462,11 @@ class image {
             $h->label('abstract', lang::translate('Abstract'));
             $h->textareaSmall('abstract');
             $legend = lang::translate('Edit image');
-            $submit = lang::system('system_submit_update');
+            $submit = lang::translate('Update');
         } else {
             $h->init(html::specialEncode($_POST), 'submit'); 
             $legend = lang::translate('Add image');
-            $submit = lang::system('system_submit_add');
+            $submit = lang::translate('Add');
             
             if (conf::getModuleIni('image_user_set_scale')) {
                 $h->label('scale_size', lang::translate('Image width in pixels, e.g. 100'));
@@ -669,10 +669,10 @@ class image {
             $options['id'] = $val['id'];
             $url = moduleloader::buildReferenceURL('/image/edit', $options);
             $str.= MENU_SUB_SEPARATOR_SEC;
-            $str.= html::createLink($url, lang::system('system_submit_edit'));
+            $str.= html::createLink($url, lang::translate('Edit'));
             $url = moduleloader::buildReferenceURL('/image/delete', $options);
             $str.= MENU_SUB_SEPARATOR;
-            $str.= html::createLink($url, lang::system('system_submit_delete'));
+            $str.= html::createLink($url, lang::translate('Delete'));
 
             $str.= "<br />\n";
         }
