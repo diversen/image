@@ -1,5 +1,7 @@
 <?php
 
+namespace modules\image;
+
 use diversen\conf;
 use diversen\db;
 use diversen\db\q;
@@ -16,6 +18,7 @@ use diversen\template;
 use diversen\upload\blob;
 use diversen\uri;
 use diversen\user;
+use PDO;
 
 /**
  * class content files is used for keeping track of file changes
@@ -23,18 +26,18 @@ use diversen\user;
  *
  * @package image
  */
-class image {
+class module {
 
 
     public static $errors = null;
     public static $status = null;
     public static $parent_id;
-    public static $fileId;
     public static $maxsize = 2000000; // 2 mb max size
     public static $options = array();
     public static $path = '/image';
     public static $fileTable = 'image';
     public static $scaleWidth;
+    public static $allow;
     public static $allowMime = 
         array ('image/gif', 'image/jpeg', 'image/pjpeg', 'image/png');
 
@@ -42,10 +45,33 @@ class image {
      *
      * constructor sets init vars
      */
-    function __construct($options = null){
-         self::$options = $options;
+    function __construct($options = null) {
+        
+        // we include module in order to insure that ini settings are loaded.
+        // these needs to be loaded when using the module as a submodule.
+        moduleloader::includeModule('image');
+        self::$options = $options;
+        if (!isset($options['allow'])) {
+            self::$allow = conf::getModuleIni('image_allow_edit');
+        }
     }
-    
+
+    /**
+     * delete all images based on parent and reference
+     * @param int $parent
+     * @param string $reference
+     * @return boolean $res
+     */
+    public function deleteAll($parent, $reference) {
+        $search = array('parent_id =' => $parent, 'reference =' => $reference);
+        $res = q::delete(self::$fileTable)->filterArray($search)->exec();
+        return $res;
+    }
+
+    /**
+     * expose images in json format
+     * @return type
+     */
     public function rpcAction () {
         $reference = @$_GET['reference'];
         $parent_id = @$_GET['parent_id'];
@@ -60,8 +86,8 @@ class image {
                     'parent_id' => $parent_id)
                 );
         foreach ($rows as $key => $val) {
-            $rows[$key]['url_m'] = "/image/download/$val[id]/" . strings::utf8SlugString($val['title']);
-            $rows[$key]['url_s'] = "/image/download/$val[id]/" . strings::utf8SlugString($val['title']) . "?size=file_thumb";
+            $rows[$key]['url_m'] = self::$path . "/download/$val[id]/" . strings::utf8SlugString($val['title']);
+            $rows[$key]['url_s'] = self::$path . "/download/$val[id]/" . strings::utf8SlugString($val['title']) . "?size=file_thumb";
             $str = strings::sanitizeUrlRigid(html::specialDecode($val['abstract']));
             $rows[$key]['title'] = $str; 
         }
@@ -72,199 +98,153 @@ class image {
     }
     
     /**
+     * get options from QUERY
+     * @return array $options
+     */
+    public static function getOptions() {
+        $options = array
+            ('parent_id' => $_GET['parent_id'],
+            'return_url' => $_GET['return_url'],
+            'reference' => $_GET['reference'],
+            'query' => $_SERVER['QUERY_STRING']);
+        return $options;
+    }
+    
+    /**
+     * check access to module based on options and blog ini settings 
+     * @param array $options
+     * @return void
+     */
+    public static function checkAccess ($options) {
+        
+        // check access
+        if (!session::checkAccessClean(self::$allow)) {
+            return false;
+        }
+
+        // if allow is set to user - this module only allow user to edit his images
+        // to references and parent_ids which he owns
+        if (self::$allow == 'user') {
+            $table = moduleloader::moduleReferenceToTable($options['reference']);
+            if (!user::ownID($table, $options['parent_id'], session::getUserId())) {
+                moduleloader::setStatus(403);
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    /**
+     * set a headline and page title based on action
+     * @param string $action 'add', 'edit', 'delete'
+     */
+    public static function setHeadlineTitle ($action = '') {
+
+        $options = self::getOptions();
+        if ($action == 'add') {
+            $title = lang::translate('Add image');
+        }
+        
+        if ($action == 'edit') {
+            $title = lang::translate('Edit image');
+        }
+        
+        if ($action == 'delete') {
+            $title = lang::translate('Delete image');
+        }
+            
+        // set headline and title
+        $headline = $title . MENU_SUB_SEPARATOR_SEC;
+        $headline.= html::createLink($options['return_url'], lang::translate('Go back'));
+
+        echo html::getHeadline($headline);
+        template::setTitle(lang::translate($title));
+    }
+    
+    /**
      * add action
      * @return mixed
      */
     public function addAction() {
-        if (!session::checkAccessFromModuleIni('image_allow_edit')) {
-            return;
-        }
-
-        moduleloader::$referenceOptions = array('edit_link' => 'true');
-        if (!moduleloader::includeRefrenceModule()) {
-            moduleloader::setStatus(404);
-            return;
-        }
-
-        $options = moduleloader::getReferenceInfo();
-        $allow = conf::getModuleIni('image_allow_edit');
         
-        // if allow is set to user - this module only allow user to edit his own images
-        if ($allow == 'user') {
-            $table = moduleloader::moduleReferenceToTable($options['reference']);
-            
-            // check if reference module is allowed to access image module
-            if (!$this->checkReferenceTable($table)) {
-                moduleloader::setStatus(403);
-                return;
-            }
-            
-            
-            if (!user::ownID($table, $options['parent_id'], session::getUserId())) {
-                moduleloader::setStatus(403);
-                return;
-            }
+        // get options from QUERY
+        $options = self::getOptions();
+        
+        if (!self::checkAccess($options)) {
+            moduleloader::setStatus(403);
+            return false;
         }
 
-        // set headline and title
-        $headline = lang::translate('Add image') . MENU_SUB_SEPARATOR_SEC . moduleloader::$referenceLink;
-        html::headline($headline);
-        template::setTitle(lang::translate('Add image'));
-
-        // set parent modules menu
-        layout::setMenuFromClassPath($options['reference']);
+        self::setHeadlineTitle('add');
 
         // display image module content
         self::init($options);
         self::viewFileFormInsert($options);
-        $rows = self::getAllFilesInfo($options);
-        echo self::displayFiles($rows, $options);
-    }
-    
-    /**
-     * check which module references are allowed to access image module
-     * notice: if this ini setting is not set any module will be able to reference
-     * the image module. This can lead to errors. So it should be set. 
-     * @param string $table the db table which will make references to image, e.g. blog 
-     * @return boolean $res
-     */
-    public function checkReferenceTable ($table) {
         
-        $allow = conf::getModuleIni('image_allow_reference');
-        if (!$allow) {
-            return true;
-        }   
-        $allow = explode(',', $allow);
-        if (in_array($table, $allow)) {
-            return true;
-        }
-        return false;
+        // display files
+        echo self::displayFiles($options);
     }
+
 
     /**
      * delete action
      * @return type
      */
     public function deleteAction() {
-        if (!session::checkAccessFromModuleIni('image_allow_edit')) {
+        $options = self::getOptions();
+        if (!self::checkAccess($options)) {
+            moduleloader::setStatus(403);
             return;
         }
 
-        moduleloader::$referenceOptions = array('edit_link' => 'true');
-        if (!moduleloader::includeRefrenceModule()) {
-            moduleloader::$status['404'] = true;
-            return;
-        }
-
-        $options = moduleloader::getReferenceInfo();
-        $allow = conf::getModuleIni('image_allow_edit');
-
-        // if allow is set to user - this module only allow user to edit his own images
-        if ($allow == 'user') {
-            //$table = moduleloader::moduleReferenceToTable($options['reference']);
-            if (!user::ownID('image', $options['inline_parent_id'], session::getUserId())) {
-                moduleloader::setStatus(403);
-                return;
-            }
-        }
-
-        // we now have a refrence module and a parent id wo work from.
-        $link = moduleloader::$referenceLink;
-        $headline = lang::translate('Delete image') . MENU_SUB_SEPARATOR_SEC . $link;
-        html::headline($headline);
-
-        template::setTitle(lang::translate('Delete image'));
-
-        self::setFileId($frag = 3);
+        self::setHeadlineTitle('delete');
         self::init($options);
         self::viewFileFormDelete();
     }
 
-    /**
-     * delete_all action
-     * @return type
-     */
-    public function delete_allAction() {
-        if (!session::checkAccessFromModuleIni('image_allow_edit')) {
-            return;
-        }
-
-        moduleloader::$referenceOptions = array('type' => 'edit');
-        if (!moduleloader::includeRefrenceModule()) {
-            moduleloader::$status['404'] = true;
-            return;
-        }
-
-        // we now have a refrence module and a parent id wo work from.
-        $link = moduleloader::$referenceLink;
-        
-        $options = moduleloader::getReferenceInfo();
-        $allow = conf::getModuleIni('image_allow_edit');
-        
-                // if allow is set to user - this module only allow user to edit his own images
-        if ($allow == 'user') {
-            $table = moduleloader::moduleReferenceToTable($options['reference']);
-            if (!user::ownID($table, $options['parent_id'], session::getUserId())) {
-                moduleloader::setStatus(403);
-                return;
-            }
-        }
-
-        $headline = lang::translate('Delete all images') . MENU_SUB_SEPARATOR_SEC . $link;
-        html::headline($headline);
-        
-        template::setTitle(lang::translate('Delete all images'));
-
-        self::setFileId($frag = 3);
-        self::init($options);
-        self::viewFileFormDeleteAll();
-    }
 
     /**
      * edit action
      * @return void
      */
     public function editAction() {
+        $options = self::getOptions();
         
-        if (!session::checkAccessFromModuleIni('image_allow_edit')) {
+        // check access
+        if (!self::checkAccess($options)) {
+            moduleloader::setStatus(403);
             return;
-        }
+        } 
+        
+        self::setHeadlineTitle('edit');
 
-        moduleloader::$referenceOptions = array('edit_link' => 'true');
-        if (!moduleloader::includeRefrenceModule()) {
-            moduleloader::$status['404'] = true;
-            return;
-        }
-
-        $options = moduleloader::getReferenceInfo();
-        $allow = conf::getModuleIni('image_allow_edit');
-
-        // if allow is set to user - this module only allow user to edit his own images
-        if ($allow == 'user') {
-            if (!user::ownID('image', $options['inline_parent_id'], session::getUserId())) {
-                moduleloader::setStatus(403);
-                return;
-            }
-        }
-
-        $link = moduleloader::$referenceLink;
-        $headline = lang::translate('Edit image') . MENU_SUB_SEPARATOR_SEC . $link;
-        html::headline($headline);
-        template::setTitle(lang::translate('Edit image'));
-
-        self::setFileId($frag = 3);
-
-        // set parent modules menu
-        layout::setMenuFromClassPath($options['reference']);
         self::init($options);
-        self::viewFileFormUpdate();
+        self::viewFileFormUpdate($options);
     }
 
     /**
      * download controller
      */
     public function downloadAction() {
-        self::downloadController();
+        
+        $id = uri::fragment(2);
+        //die;
+        $size = self::getImageSize(); 
+        $file = self::getFile($id);
+        //print_r($file); die;
+        if (empty($file)) {
+            moduleloader::setStatus(404);
+            return;
+        }
+        
+        
+        http::cacheHeaders();
+        if (isset($file['mimetype']) && !empty($file['mimetype'])) {
+            header("Content-type: $file[mimetype]");
+        }
+        echo $file[$size];
+        die;
+    
     }
 
     /**
@@ -333,7 +313,7 @@ class image {
         layout::attachMenuItem('module', 
                 array(
                     'title' => lang::translate('Images'), 
-                    'url' => '/image/admin'));
+                    'url' => self::$path . '/admin'));
         
         $per_page = 10;
         $total = q::numRows('image')->fetch();
@@ -342,11 +322,9 @@ class image {
         $from = @$_GET['from'];
         if (isset($_GET['delete'])) {
             $this->deleteFile($_GET['delete']);    
-            http::locationHeader("/image/admin?from=$from", 
+            http::locationHeader(self::$path . "/admin?from=$from", 
                     lang::translate('Image deleted'));
         }
-        
-        
         
         $rows = q::select('image', 'id, title, user_id')->
                 order('created', 'DESC')->
@@ -362,15 +340,12 @@ class image {
             echo "<br />";
             echo user::getProfileLink($row['user_id']);
             echo "<br />";
-            echo html::createLink("/image/admin?delete=$row[id]&from=$from", lang::translate('Delete image'));
+            echo html::createLink(self::$path . "/admin?delete=$row[id]&from=$from", lang::translate('Delete image'));
             echo "</td>";
             echo "</tr>";
         }
-        echo "</table>";
-        
+        echo "</table>"; 
         echo $p->getPagerHTML();
-        
-        
     }
     
 
@@ -400,13 +375,6 @@ class image {
                 fetchSingle();
     }
 
-    /**
-     * set a files id
-     * @param string $frag
-     */
-    public static function setFileId ($frag = 2){
-        self::$fileId = uri::$fragments[$frag];
-    }
     
     /**
      * get a image html tag
@@ -417,8 +385,8 @@ class image {
      */
     public static function getImgTag ($row, $size = "file_org", $options = array ()) {
         return $img_tag = html::createHrefImage(
-                "/image/download/$row[id]/$row[title]?size=file_org", 
-                "/image/download/$row[id]/$row[title]?size=$size", 
+                self::$path . "/download/$row[id]/$row[title]?size=file_org", 
+                self::$path . "/download/$row[id]/$row[title]?size=$size", 
                 $options);
 
     }
@@ -445,22 +413,13 @@ class image {
             return;
         }
         
-        if ($method == 'delete_all' && isset($id)) {
-            $legend = lang::translate('Delete all images');
-            $h->legend($legend);
-            $h->submit('submit', lang::translate('Delete'));
-            $h->formEnd();
-            echo $h->getStr();
-            return;
-        }
-        
         $legend = '';
+        
+        // update
         if (isset($id)) {
             $values = self::getSingleFileInfo($id);
             $h->init($values, 'submit'); 
-            $h->legend($legend);
-            $h->label('abstract', lang::translate('Abstract'));
-            $h->textareaSmall('abstract');
+            
             $legend = lang::translate('Edit image');
             $submit = lang::translate('Update');
         } else {
@@ -468,19 +427,24 @@ class image {
             $legend = lang::translate('Add image');
             $submit = lang::translate('Add');
             
-            if (conf::getModuleIni('image_user_set_scale')) {
-                $h->label('scale_size', lang::translate('Image width in pixels, e.g. 100'));
-                $h->text('scale_size');
-            }
             
-            $bytes = conf::getModuleIni('image_max_size');
-            $h->fileWithLabel('file', $bytes);
-            
-            $h->label('abstract', lang::translate('Abstract'));
-            $h->textareaSmall('abstract');
             
         }
- 
+        
+        $h->legend($legend);
+
+
+        if (conf::getModuleIni('image_user_set_scale')) {
+            $h->label('scale_size', lang::translate('Image width in pixels, e.g. 100'));
+            $h->text('scale_size');
+        }
+
+        $bytes = conf::getModuleIni('image_max_size');
+        $h->fileWithLabel('file', $bytes);
+
+        $h->label('abstract', lang::translate('Abstract'));
+        $h->textareaSmall('abstract');
+
         $h->submit('submit', $submit);
         $h->formEnd();
         echo $h->getStr();
@@ -502,7 +466,7 @@ class image {
      * @return string
      */
     public static function getFullWebPath ($row, $size = null) {
-        $str = "/image/download/$row[id]/" . strings::utf8SlugString($row['title']);
+        $str = self::$path . "/download/$row[id]/" . strings::utf8SlugString($row['title']);
         return $str;
     }
     
@@ -529,14 +493,17 @@ class image {
      */
     public static function insertFile ($input = 'file') {
         $db = new db();
-
+        
         $_POST = html::specialDecode($_POST);
+        
+        $options = array();
         $options['filename'] = $input;
         $options['maxsize'] = self::$maxsize;
         $options['allow_mime'] = self::$allowMime;
         
+        // get med size
         $med_size = self::getMedSize();
-
+        
         // get fp - will also check for error in upload
         $fp = blob::getFP('file', $options);
         if (!$fp) {
@@ -546,8 +513,8 @@ class image {
         
         $values['file_org'] = $fp;
         
-        // we got a valid file pointer where we checked for errors
-        // now we use the tmp name for the file when scaling. Only
+        // we got a valid file pointer checked for errors
+        // now we use the tmp file when scaleing. Only
         // scale if an scaleWidth has been set. 
         
         self::scaleImage(
@@ -596,11 +563,12 @@ class image {
     }
 
     /**
-     * validate before insert update. 
+     * validate before insert. No check for e.g. size
+     * this is checked but no errors are given. 
+     * just check if there is a file. 
      * @param type $mode 
      */
     public static function validateInsert($mode = false){
-
         if ($mode != 'update') {
             if (empty($_FILES['file']['name'])){
                 self::$errors[] = lang::translate('No file was specified');
@@ -628,26 +596,18 @@ class image {
      */
     public static function subModuleAdminOption ($options){
         $str = "";
-        $url = moduleloader::buildReferenceURL('/image/add', $options);
-        $add_str= lang::translate('Edit images');
-        $str.= html::createLink($url, $add_str);
-        return $str;
+        
+
+        $url = self::$path . "/add?" . http_build_query($options);
+        $extra = null;
+        if (isset($options['options'])) {
+            $extra = $options['options'];
+        }
+        
+        return html::createLink($url, lang::translate('Add image'), $extra); //$url;
+
     }
-    
-    /**
-     * get admin options as ary ('text', 'url', 'link') when operating as a sub module
-     * @param array $options
-     * @return array $ary  
-     */
-    public static function subModuleAdminOptionAry ($options){
-        $ary = array ();
-        $url = moduleloader::buildReferenceURL('/image/add', $options);
-        $text = lang::translate('Edit images');
-        $ary['link'] = html::createLink($url, $text);
-        $ary['url'] = $url;
-        $ary['text'] = $text;
-        return $ary;
-    }
+
 
     /**
      * displays all files from db rows and options
@@ -655,35 +615,39 @@ class image {
      * @param array $options
      * @return string $html
      */
-    public static function displayFiles($rows, $options){
+    public static function displayFiles($options){
+
         
+        // get info about all images
+        $rows = self::getAllFilesInfo($options);
+        
+        // create string with HTML
         $str = "";
         foreach ($rows as $val){
+            
+            // generate title
             $title = lang::translate('Download');
             $title.= MENU_SUB_SEPARATOR_SEC;
             $title.= htmlspecialchars($val['title']);
             
+            // create link to image
             $link_options = array('title' => htmlspecialchars($val['abstract']));
             $str.= html::createLink($val['image_url'], $title, $link_options);
 
-            $options['id'] = $val['id'];
-            $url = moduleloader::buildReferenceURL('/image/edit', $options);
+            // edit link
+            $add = self::$path . "/edit/$val[id]?" . $options['query'];
             $str.= MENU_SUB_SEPARATOR_SEC;
-            $str.= html::createLink($url, lang::translate('Edit'));
-            $url = moduleloader::buildReferenceURL('/image/delete', $options);
+            $str.= html::createLink($add, lang::translate('Edit'));
+            
+            // delete link
+            $delete = self::$path . "/delete/$val[id]?" . $options['query'];
             $str.= MENU_SUB_SEPARATOR;
-            $str.= html::createLink($url, lang::translate('Delete'));
+            $str.= html::createLink($delete, lang::translate('Delete'));
 
+            // break
             $str.= "<br />\n";
         }
-        
-        $info = self::getAllFilesInfo($options);
-        if (!empty($info)) { 
-            $url = $url = "/image/delete_all/$options[parent_id]/0/$options[reference]";
-            $title = lang::translate('Delete all images');
-            $str.= html::createLink($url, $title);
-        }
-        return $str;
+        echo $str;
     }
     
     /**
@@ -712,10 +676,8 @@ class image {
      * @param int $id
      * @return array $row
      */
-    public static function getSingleFileInfo($id = null){
-        if (!$id) { 
-            $id = self::$fileId;
-        }
+    public static function getSingleFileInfo($id){
+
         $db = new db();
         $search = array (
             'id' => $id
@@ -730,18 +692,12 @@ class image {
      * method for fetching one full file row
      * @return array $row
      */
-    public static function getFile($size = null){
+    public static function getFile($id){
         $db = new db();
+
         
-        if (!$size) { 
-            $size = 'file';
-        }
-        if ($size != 'file' || $size != 'file_thumb' || $size != 'file_org') {
-            $size = 'file';
-        }
-        
-        $db->selectOne(self::$fileTable, 'id', self::$fileId, array($size));
-        $row = $db->selectOne(self::$fileTable, 'id', self::$fileId);
+        //$db->selectOne(self::$fileTable, 'id', $id, array($size));
+        $row = $db->selectOne(self::$fileTable, 'id', $id);
         return $row;
     }
 
@@ -749,12 +705,16 @@ class image {
      * method for updating a module in database
      * @return boolean $res true on success or false on failure
      */
+    public static function updateFile() {
 
-    public static function updateFile () {
+        $id = uri::fragment(2);
+        $options = self::getOptions();
+
         $med_size = self::getMedSize();
         $values = db::prepareToPost();
-        
-        if (!empty($_FILES['file']['name']) ){
+
+
+        if (!empty($_FILES['file']['name'])) {
             $options['filename'] = 'file';
             $options['maxsize'] = self::$maxsize;
             $options['allow_mime'] = self::$allowMime;
@@ -764,45 +724,40 @@ class image {
             if (!$fp) {
                 self::$errors = blob::$errors;
                 return false;
-            } 
-            
+            }
+
             $values['file_org'] = $fp;
-            
+
             if (empty($med_size)) {
                 $med_size = conf::getModuleIni('image_scale_width');
             }
 
             self::scaleImage(
-                    $_FILES['file']['tmp_name'], 
-                    $_FILES['file']['tmp_name'] . "-med", 
-                    $med_size);
+                    $_FILES['file']['tmp_name'], $_FILES['file']['tmp_name'] . "-med", $med_size);
             $fp_med = fopen($_FILES['file']['tmp_name'] . "-med", 'rb');
             $values['file'] = $fp_med;
 
             self::scaleImage(
-                    $_FILES['file']['tmp_name'], 
-                    $_FILES['file']['tmp_name'] . "-thumb", 
-                    conf::getModuleIni('image_scale_width_thumb'));
-            $fp_thumb = fopen($_FILES['file']['tmp_name'] . "-thumb", 'rb'); 
-        
+                    $_FILES['file']['tmp_name'], $_FILES['file']['tmp_name'] . "-thumb", conf::getModuleIni('image_scale_width_thumb'));
+            $fp_thumb = fopen($_FILES['file']['tmp_name'] . "-thumb", 'rb');
+
             $values['file_thumb'] = $fp_thumb;
 
             $values['title'] = $_FILES['file']['name'];
             $values['mimetype'] = $_FILES['file']['type'];
-            $values['parent_id'] = self::$options['parent_id'];
-            $values['reference'] = self::$options['reference'];
+            $values['parent_id'] = $options['parent_id'];
+            $values['reference'] = $options['reference'];
 
             $bind = array(
-            'file_org' => PDO::PARAM_LOB, 
-            'file' => PDO::PARAM_LOB,
-            'file_thumb' => PDO::PARAM_LOB,);
+                'file_org' => PDO::PARAM_LOB,
+                'file' => PDO::PARAM_LOB,
+                'file_thumb' => PDO::PARAM_LOB,);
         }
         $db = new db();
-        
-        $res = $db->update(self::$fileTable, $values, self::$fileId, $bind);
+        $res = $db->update(self::$fileTable, $values, $id, $bind);
         return $res;
     }
-    
+
     /**
      * display a insert file form
      * @param type $options
@@ -837,19 +792,15 @@ class image {
      * @param type $options
      */
     public static function viewFileFormInsert($options){
-        if (conf::getModuleIni('image_redirect_parent')) {
-            $redirect = moduleloader_reference::getParentEditUrlFromOptions(self::$options);
-        } else {
-            $redirect = moduleloader::buildReferenceURL('/image/add', self::$options);
-        }
 
+        $redirect = $options['return_url'];
         if (isset($_POST['submit'])){
             self::validateInsert();
             if (!isset(self::$errors)){
-                $res = self::insertFile($options);
+                $res = self::insertFile();
                 if ($res){
                     session::setActionMessage(lang::translate('Image was added'));
-                    http::locationHeader($redirect);
+                    self::redirectImageMain($options);
                 } else {
                     html::errors(self::$errors);
                 }
@@ -860,57 +811,45 @@ class image {
         self::viewFileForm('insert');
     }
 
+    /**
+     * view form for deleting image
+     */
     public static function viewFileFormDelete(){
-        $redirect = moduleloader::buildReferenceURL('/image/add', self::$options);
+        
+        $id = uri::fragment(2);
+        $options = self::getOptions();
         if (isset($_POST['submit'])){
             if (!isset(self::$errors)){
-                $res = self::deleteFile(self::$fileId);
+                $res = self::deleteFile($id);
                 if ($res){
                     session::setActionMessage(lang::translate('Image was deleted'));
-                    $header = "Location: " . $redirect;
-                    header($header);
-                    exit;
+                    self::redirectImageMain($options);
                 }
             } else {
                 html::errors(self::$errors);
             }
         }
-        self::viewFileForm('delete', self::$fileId);
+        self::viewFileForm('delete', $id);
     }
     
-    public function deleteAll($parent, $reference){
-        $search = array ('parent_id =' => $parent, 'reference =' => $reference);
-        $res = q::delete(self::$fileTable)->filterArray($search)->exec();
-        return $res;
-    }
-    
-    public static function viewFileFormDeleteAll(){
-        $redirect = moduleloader::buildReferenceURL('/image/add', self::$options);
-        if (isset($_POST['submit'])){
-            if (!isset(self::$errors)){
-                $res = self::deleteAll(self::$options['parent_id'], self::$options['reference']);
-                if ($res){
-                    session::setActionMessage(lang::translate('All images has been deleted'));
-                    $header = "Location: " . $redirect;
-                    header($header);
-                    exit;
-                }
-            } else {
-                html::errors(self::$errors);
-            }
-        }
-        self::viewFileForm('delete_all', self::$fileId);
+    public static function redirectImageMain ($options) {
+        $url = "/image/add/?$options[query]";
+        http::locationHeader($url);
+        
     }
 
-    public static function viewFileFormUpdate(){
-        $redirect = moduleloader::buildReferenceURL('/image/add', self::$options);
+    /**
+     * view form for updating an image
+     */
+    public static function viewFileFormUpdate($options){
+        $id = uri::fragment(2);
         if (isset($_POST['submit'])){
             self::validateInsert('update');
             if (!isset(self::$errors)){
                 $res = self::updateFile();
                 if ($res){
                     session::setActionMessage(lang::translate('Image was updated'));
-                    http::locationHeader($redirect);
+                    self::redirectImageMain($options);
                 } else {
                     html::errors(self::$errors);
                 }
@@ -918,9 +857,13 @@ class image {
                 html::errors(self::$errors);
             }
         }
-        self::viewFileForm('update', self::$fileId);
+        self::viewFileForm('update', $id);
     }
 
+    /**
+     * get a size of image to deliver based on $_GET['size']
+     * @return string
+     */
     public static function getImageSize () {
         $size = null;
         if (!isset($_GET['size'])) {
@@ -928,32 +871,9 @@ class image {
         } else {
             $size = $_GET['size'];
         }
-        //if (!$size) $size = 'file';
         if ($size != 'file' && $size != 'file_thumb' && $size != 'file_org') {
             $size = 'file';
         }
         return $size;
     }
-
-    public static function downloadController (){
-
-        self::init();
-        self::setFileId($frag = 2);
-        
-        $size = self::getImageSize(); 
-        $file = self::getFile($size);
-        if (empty($file)) {
-            moduleloader::setStatus(404);
-            return;
-        }
-        
-        http::cacheHeaders();
-        if (isset($file['mimetype']) && !empty($file['mimetype'])) {
-            header("Content-type: $file[mimetype]");
-        }
-        echo $file[$size];
-        die;
-    }
 }
-
-class image_module extends image {}

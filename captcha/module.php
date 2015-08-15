@@ -1,8 +1,10 @@
 <?php
 
+namespace modules\image\captcha;
+
 use diversen\image\captcha;
 
-class image_captcha {
+class module {
 
     // -------------------------------------------------------------------
     // captcha.php
@@ -10,6 +12,7 @@ class image_captcha {
     // Copyright (c) 2005 Gonçalo "gesf" Fontoura.
     // -------------------------------------------------------------------
     public function indexAction() {
+
         header("Expires: Mon, 23 Jul 1993 05:00:00 GMT");
         header("Last-Modified: " . gmdate("D, d M Y H:i:s") . " GMT");
         // HTTP/1.1
