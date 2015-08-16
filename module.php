@@ -175,6 +175,7 @@ class module {
             return false;
         }
 
+        layout::setMenuFromClassPath($options['reference']);
         self::setHeadlineTitle('add');
 
         // display image module content
@@ -595,17 +596,12 @@ class module {
      * @return string  
      */
     public static function subModuleAdminOption ($options){
-        $str = "";
-        
-
         $url = self::$path . "/add?" . http_build_query($options);
         $extra = null;
         if (isset($options['options'])) {
             $extra = $options['options'];
         }
-        
-        return html::createLink($url, lang::translate('Add image'), $extra); //$url;
-
+        return html::createLink($url, lang::translate('Add image'), $extra); 
     }
 
 
