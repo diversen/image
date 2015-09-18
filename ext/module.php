@@ -2,10 +2,8 @@
 
 use diversen\conf;
 use diversen\db;
-//use diversen\moduleloader;
 
 use modules\image\module as image;
-//moduleloader::includeModule('image');
 
 class image_ext extends image {
     /**
