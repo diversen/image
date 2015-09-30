@@ -3,9 +3,9 @@
 use diversen\conf;
 use diversen\db;
 
-use modules\image\module as image;
+use modules\image\module as imageModule;
 
-class image_ext extends image {
+class image_ext extends imageModule {
     /**
      * method for inserting a file into the database
      * (access control is cheched in controller file)

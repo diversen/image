@@ -5,9 +5,9 @@ namespace modules\image;
 use diversen\conf;
 use diversen\db;
 use diversen\db\q;
+use diversen\db\admin;
 use diversen\html;
 use diversen\http;
-use diversen\imagescale;
 use diversen\lang;
 use diversen\layout;
 use diversen\moduleloader;
@@ -19,6 +19,8 @@ use diversen\upload\blob;
 use diversen\uri;
 use diversen\user;
 use PDO;
+use Exception;
+use Gregwar\Image\Image;
 
 /**
  * class content files is used for keeping track of file changes
@@ -125,7 +127,11 @@ class module {
         // if allow is set to user - this module only allow user to edit his images
         // to references and parent_ids which he owns
         if (self::$allow == 'user') {
+            
             $table = moduleloader::moduleReferenceToTable($options['reference']);
+            if (!admin::tableExists($table)) {
+                return false;
+            }
             if (!user::ownID($table, $options['parent_id'], session::getUserId())) {
                 moduleloader::setStatus(403);
                 return false;
@@ -558,11 +564,14 @@ class module {
      * @return type 
      */
     public static function scaleImage ($image, $thumb, $width){
-        $res = imagescale::byX($image, $thumb, $width);
-        if (!empty(imagescale::$errors)) { 
-            self::$errors = imagescale::$errors;
+        try {
+            Image::open($image)->cropResize($width)->save($thumb);
+        } catch (Exception $e) {
+            self::$errors[] = $e->getMessage();
+            return false;
         }
-        return $res;
+        return true;
+
     }
 
     /**
