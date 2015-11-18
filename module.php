@@ -612,7 +612,7 @@ class module {
         if (isset($options['options'])) {
             $extra = $options['options'];
         }
-        return html::createLink($url, lang::translate('Add image'), $extra); 
+        return html::createLink($url, lang::translate('Images'), $extra); 
     }
 
 
