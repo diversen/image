@@ -173,6 +173,11 @@ class module {
      */
     public function addAction() {
         
+        if (!isset($_GET['parent_id'], $_GET['return_url'], $_GET['reference'] )) { 
+            moduleloader::setStatus(403);
+            return false;
+        }
+        
         // get options from QUERY
         $options = self::getOptions();
         
