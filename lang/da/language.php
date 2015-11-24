@@ -2,12 +2,12 @@
 
 $LANG = array();
 
+$LANG['Images'] = 'Images';
 $LANG['Add image'] = 'Tilføj billede';
 $LANG['Edit image'] = 'Rediger billede';
 $LANG['Delete image'] = 'Slet billede';
 $LANG['Go back'] = 'Gå tilbage';
 $LANG['Image was added'] = 'Billede blev tilsat';
-$LANG['Images'] = 'Images';
 $LANG['Image deleted'] = 'Billede slettet';
 $LANG['Delete'] = 'Slet';
 $LANG['Update'] = 'Opdatering';
