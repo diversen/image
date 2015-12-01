@@ -71,7 +71,8 @@ class module {
     }
 
     /**
-     * expose images in json format
+     * Note: All images are public
+     * Expose images in json format
      * @return type
      */
     public function rpcAction () {
