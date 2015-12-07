@@ -767,9 +767,7 @@ class module {
         $med_size = self::getMedSize();
         
         $files = $this->getUploadedFilesArray();
-        
-        //
-        
+
         if (isset($files[0])) {
             $file = $files[0];
             // get fp - will also check for error in upload

@@ -3,7 +3,7 @@
 $LANG = array();
 
 $LANG['Images'] = 'Images';
-$LANG['Add image'] = 'Tilføj billede';
+$LANG['Add images'] = 'Tilføj billeder';
 $LANG['Edit image'] = 'Rediger billede';
 $LANG['Delete image'] = 'Slet billede';
 $LANG['Go back'] = 'Gå tilbage';
