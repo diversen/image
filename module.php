@@ -149,7 +149,7 @@ class module {
 
         $options = self::getOptions();
         if ($action == 'add') {
-            $title = lang::translate('Add image');
+            $title = lang::translate('Add images');
         }
         
         if ($action == 'edit') {
@@ -165,7 +165,7 @@ class module {
         $headline.= html::createLink($options['return_url'], lang::translate('Go back'));
 
         echo html::getHeadline($headline);
-        template::setTitle(lang::translate($title));
+        template::setTitle($title);
     }
     
     /**
@@ -192,7 +192,7 @@ class module {
 
         // display image module content
         self::init($options);
-        self::viewFileFormInsert($options);
+        $this->viewFileFormInsert($options);
         
         // display files
         echo self::displayFiles($options);
@@ -213,7 +213,7 @@ class module {
         layout::setMenuFromClassPath($options['reference']);
         self::setHeadlineTitle('delete');
         self::init($options);
-        self::viewFileFormDelete();
+        $this->viewFileFormDelete();
     }
 
 
@@ -234,7 +234,7 @@ class module {
         self::setHeadlineTitle('edit');
 
         self::init($options);
-        self::viewFileFormUpdate($options);
+        $this->viewFileFormUpdate($options);
     }
 
     /**
@@ -304,7 +304,7 @@ class module {
         self::init($options);
         self::validateInsert();
         if (!isset(self::$errors)) {
-            $res = @self::insertFile();
+            $res = self::insertFiles();
             if ($res) {
                 echo lang::translate('Image was added');
             } else {
@@ -414,7 +414,7 @@ class module {
     * @param string    method (update, delete or insert)
     * @param int       id (if delete or update)
     */
-    public static function viewFileForm($method, $id = null, $values = array(), $caption = null){
+    public function viewFileForm($method, $id = null, $values = array(), $caption = null){
         
         html::$doUpload = true;
         $h = new html();
@@ -439,24 +439,24 @@ class module {
             $submit = lang::translate('Update');
         } else {
             $h->init(html::specialEncode($_POST), 'submit'); 
-            $legend = lang::translate('Add image');
+            $legend = lang::translate('Add images');
             $submit = lang::translate('Add');
-            
-            
-            
         }
         
         $h->legend($legend);
-
-
         if (conf::getModuleIni('image_user_set_scale')) {
             $h->label('scale_size', lang::translate('Image width in pixels, e.g. 100'));
             $h->text('scale_size');
         }
 
         $bytes = conf::getModuleIni('image_max_size');
-        $h->fileWithLabel('file', $bytes);
-
+        if ($method == 'insert') {
+            $options = array ('multiple'=> "multiple");
+        } else {
+            $options = array();
+        }
+        
+        $h->fileWithLabel('files[]', $bytes, $options);
         $h->label('abstract', lang::translate('Abstract'));
         $h->textareaSmall('abstract');
 
@@ -506,13 +506,45 @@ class module {
      *
      * @return boolean true on success or false on failure
      */
-    public static function insertFile ($input = 'file') {
-        $db = new db();
+    public function insertFiles ($input = 'files') {
         
         $_POST = html::specialDecode($_POST);
         
+        $ary = $this->getUploadedFilesArray();
+        foreach($ary as $file) {
+            $this->insertFile($file);
+        }
+    }
+    
+    /**
+     * Get uploaded files as a organized array
+     * @return array $ary
+     */
+    public function getUploadedFilesArray () {
+                
+        $ary = array ();
+        foreach ($_FILES['files']['name'] as $key => $name) {
+            $ary[$key]['name'] = $name;
+        }
+        foreach ($_FILES['files']['type'] as $key => $type) {
+            $ary[$key]['type'] = $type;
+        }
+        foreach ($_FILES['files']['tmp_name'] as $key => $tmp_name) {
+            $ary[$key]['tmp_name'] = $tmp_name;
+        }
+        foreach ($_FILES['files']['error'] as $key => $error) {
+            $ary[$key]['error'] = $error;
+        }
+        foreach ($_FILES['files']['size'] as $key => $size) {
+            $ary[$key]['size'] = $size;
+        }
+        return $ary;
+    }
+
+    
+    public function insertFile ($file) {
+
         $options = array();
-        $options['filename'] = $input;
         $options['maxsize'] = self::$maxsize;
         $options['allow_mime'] = self::$allowMime;
         
@@ -520,7 +552,7 @@ class module {
         $med_size = self::getMedSize();
         
         // get fp - will also check for error in upload
-        $fp = blob::getFP('file', $options);
+        $fp = blob::getFP($file, $options);
         if (!$fp) {
             self::$errors = blob::$errors;
             return false;
@@ -533,22 +565,22 @@ class module {
         // scale if an scaleWidth has been set. 
         
         self::scaleImage(
-                $_FILES['file']['tmp_name'], 
-                $_FILES['file']['tmp_name'] . "-med", 
+                $file['tmp_name'], 
+                $file['tmp_name'] . "-med", 
                 $med_size);
         
-        $fp_med = fopen($_FILES['file']['tmp_name'] . "-med", 'rb');
+        $fp_med = fopen($file['tmp_name'] . "-med", 'rb');
         $values['file'] = $fp_med;
         
         self::scaleImage(
-                $_FILES['file']['tmp_name'], 
-                $_FILES['file']['tmp_name'] . "-thumb", 
+                $file['tmp_name'], 
+                $file['tmp_name'] . "-thumb", 
                 conf::getModuleIni('image_scale_width_thumb'));
-        $fp_thumb = fopen($_FILES['file']['tmp_name'] . "-thumb", 'rb'); 
-        $values['file_thumb'] = $fp_thumb;
+        $fp_thumb = fopen($file['tmp_name'] . "-thumb", 'rb'); 
         
-        $values['title'] = $_FILES['file']['name'];
-        $values['mimetype'] = $_FILES['file']['type'];
+        $values['file_thumb'] = $fp_thumb;
+        $values['title'] = $file['name'];
+        $values['mimetype'] = $file['type'];
         $values['parent_id'] = self::$options['parent_id'];
         $values['reference'] = self::$options['reference'];
         $values['abstract'] = html::specialDecode($_POST['abstract']);
@@ -558,12 +590,13 @@ class module {
             'file_org' => PDO::PARAM_LOB, 
             'file' => PDO::PARAM_LOB,
             'file_thumb' => PDO::PARAM_LOB,);
+        
+        $db = new db();
         $res = $db->insert(self::$fileTable, $values, $bind);
         return $res;
     }
-
+    
     /**
-     *
      * @param type $image the image file to scale from
      * @param type $thumb the image file to scale to
      * @param type $width the x factor or width of the image
@@ -588,7 +621,7 @@ class module {
      */
     public static function validateInsert($mode = false){
         if ($mode != 'update') {
-            if (empty($_FILES['file']['name'])){
+            if (empty($_FILES['files']['name']['0'])){
                 self::$errors[] = lang::translate('No file was specified');
             }
         }
@@ -718,7 +751,7 @@ class module {
      * method for updating a module in database
      * @return boolean $res true on success or false on failure
      */
-    public static function updateFile() {
+    public function updateFile() {
 
         $id = uri::fragment(2);
         $options = self::getOptions();
@@ -726,45 +759,59 @@ class module {
         $med_size = self::getMedSize();
         $values = db::prepareToPost();
 
-
-        if (!empty($_FILES['file']['name'])) {
-            $options['filename'] = 'file';
-            $options['maxsize'] = self::$maxsize;
-            $options['allow_mime'] = self::$allowMime;
-
+        $options = array();
+        $options['maxsize'] = self::$maxsize;
+        $options['allow_mime'] = self::$allowMime;
+        
+        // get med size
+        $med_size = self::getMedSize();
+        
+        $files = $this->getUploadedFilesArray();
+        
+        //
+        
+        if (isset($files[0])) {
+            $file = $files[0];
             // get fp - will also check for error in upload
-            $fp = blob::getFP('file', $options);
+            $fp = blob::getFP($file, $options);
             if (!$fp) {
                 self::$errors = blob::$errors;
                 return false;
-            }
+            } 
 
             $values['file_org'] = $fp;
 
-            if (empty($med_size)) {
-                $med_size = conf::getModuleIni('image_scale_width');
-            }
+            // we got a valid file pointer checked for errors
+            // now we use the tmp file when scaleing. Only
+            // scale if an scaleWidth has been set. 
 
             self::scaleImage(
-                    $_FILES['file']['tmp_name'], $_FILES['file']['tmp_name'] . "-med", $med_size);
-            $fp_med = fopen($_FILES['file']['tmp_name'] . "-med", 'rb');
+                    $file['tmp_name'], 
+                    $file['tmp_name'] . "-med", 
+                    $med_size);
+
+            $fp_med = fopen($file['tmp_name'] . "-med", 'rb');
             $values['file'] = $fp_med;
 
             self::scaleImage(
-                    $_FILES['file']['tmp_name'], $_FILES['file']['tmp_name'] . "-thumb", conf::getModuleIni('image_scale_width_thumb'));
-            $fp_thumb = fopen($_FILES['file']['tmp_name'] . "-thumb", 'rb');
+                    $file['tmp_name'], 
+                    $file['tmp_name'] . "-thumb", 
+                    conf::getModuleIni('image_scale_width_thumb'));
+            $fp_thumb = fopen($file['tmp_name'] . "-thumb", 'rb'); 
 
             $values['file_thumb'] = $fp_thumb;
-
-            $values['title'] = $_FILES['file']['name'];
-            $values['mimetype'] = $_FILES['file']['type'];
-            $values['parent_id'] = $options['parent_id'];
-            $values['reference'] = $options['reference'];
+            $values['title'] = $file['name'];
+            $values['mimetype'] = $file['type'];
+            $values['parent_id'] = self::$options['parent_id'];
+            $values['reference'] = self::$options['reference'];
+            $values['abstract'] = html::specialDecode($_POST['abstract']);
+            $values['user_id'] = session::getUserId();
 
             $bind = array(
-                'file_org' => PDO::PARAM_LOB,
+                'file_org' => PDO::PARAM_LOB, 
                 'file' => PDO::PARAM_LOB,
                 'file_thumb' => PDO::PARAM_LOB,);
+
         }
         $db = new db();
         $res = $db->update(self::$fileTable, $values, $id, $bind);
@@ -786,7 +833,7 @@ class module {
         if (isset($_POST['submit'])){
             self::validateInsert();
             if (!isset(self::$errors)){
-                $res = self::insertFile($options);
+                $res = $this->insertFiles($options);
                 if ($res){
                     session::setActionMessage(lang::translate('Image was added'));
                     http::locationHeader($redirect);
@@ -804,13 +851,14 @@ class module {
      * view form for uploading a file.
      * @param type $options
      */
-    public static function viewFileFormInsert($options){
+    public function viewFileFormInsert($options){
 
         $redirect = $options['return_url'];
         if (isset($_POST['submit'])){
             self::validateInsert();
             if (!isset(self::$errors)){
-                $res = self::insertFile();
+                
+                $res = $this->insertFiles();
                 if ($res){
                     session::setActionMessage(lang::translate('Image was added'));
                     self::redirectImageMain($options);
@@ -827,7 +875,7 @@ class module {
     /**
      * view form for deleting image
      */
-    public static function viewFileFormDelete(){
+    public function viewFileFormDelete(){
         
         $id = uri::fragment(2);
         $options = self::getOptions();
@@ -842,7 +890,7 @@ class module {
                 html::errors(self::$errors);
             }
         }
-        self::viewFileForm('delete', $id);
+        $this->viewFileForm('delete', $id);
     }
     
     public static function redirectImageMain ($options) {
@@ -854,12 +902,12 @@ class module {
     /**
      * view form for updating an image
      */
-    public static function viewFileFormUpdate($options){
+    public function viewFileFormUpdate($options){
         $id = uri::fragment(2);
         if (isset($_POST['submit'])){
             self::validateInsert('update');
             if (!isset(self::$errors)){
-                $res = self::updateFile();
+                $res = $this->updateFile();
                 if ($res){
                     session::setActionMessage(lang::translate('Image was updated'));
                     self::redirectImageMain($options);
@@ -870,7 +918,7 @@ class module {
                 html::errors(self::$errors);
             }
         }
-        self::viewFileForm('update', $id);
+        $this->viewFileForm('update', $id);
     }
 
     /**

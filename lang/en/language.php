@@ -7,7 +7,7 @@ $LANG = array();
 $LANG['Images'] = 'Images';
 // Translation of file modules/image/module.php
 
-$LANG['Add image'] = 'Add image';
+$LANG['Add images'] = 'Add images';
 $LANG['Edit image'] = 'Edit image';
 $LANG['Delete image'] = 'Delete image';
 $LANG['Go back'] = 'Go back';
