@@ -416,10 +416,11 @@ class module {
     */
     public function viewFileForm($method, $id = null, $values = array(), $caption = null){
         
+        
         html::$doUpload = true;
         $h = new html();
         
-        $h->formStartAry(array('id' => 'image_upload_form'));
+        $h->formStartAry(array('id' => 'image_upload_form', 'onsubmit'=>"setFormSubmitting()"));
         if ($method == 'delete' && isset($id)) {
             $legend = lang::translate('Delete image');
             $h->legend($legend);
@@ -457,7 +458,8 @@ class module {
         }
         
         $h->fileWithLabel('files[]', $bytes, $options);
-        $h->label('abstract', lang::translate('Abstract'));
+        
+        $h->label('abstract', lang::translate('Title'));
         $h->textareaSmall('abstract');
 
         $h->submit('submit', $submit);
@@ -512,9 +514,34 @@ class module {
         
         $ary = $this->getUploadedFilesArray();
         foreach($ary as $file) {
-            $this->insertFile($file);
+            $res = $this->insertFile($file);
+            if (!$res) {
+                return false;
+            }
         }
+        return true;
     }
+    
+    public function uploadJs () { ?>
+<script>
+var formSubmitting = false;
+var setFormSubmitting = function() { formSubmitting = true; };
+
+window.onload = function() {
+    window.addEventListener("beforeunload", function (e) {
+        if (formSubmitting) {
+            return undefined;
+        }
+
+        var confirmationMessage = 'It looks like you have been editing something. '
+                                + 'If you leave before saving, your changes will be lost.';
+
+        (e || window.event).returnValue = confirmationMessage; //Gecko + IE
+        return confirmationMessage; //Gecko + Webkit, Safari, Chrome etc.
+    });
+};
+</script>
+    <?php }
     
     /**
      * Get uploaded files as a organized array
@@ -767,8 +794,9 @@ class module {
         $med_size = self::getMedSize();
         
         $files = $this->getUploadedFilesArray();
-
-        if (isset($files[0])) {
+        //print_r($files); die;
+        
+        if (isset($files[0]['name']) && !empty($files[0]['name'])) {
             $file = $files[0];
             // get fp - will also check for error in upload
             $fp = blob::getFP($file, $options);
@@ -853,18 +881,21 @@ class module {
 
         $redirect = $options['return_url'];
         if (isset($_POST['submit'])){
+            
             self::validateInsert();
+            //$this->uploadJs();
+            //sleep(20);
+            
             if (!isset(self::$errors)){
-                
                 $res = $this->insertFiles();
                 if ($res){
                     session::setActionMessage(lang::translate('Image was added'));
                     self::redirectImageMain($options);
                 } else {
-                    html::errors(self::$errors);
+                    echo html::getErrors(self::$errors);
                 }
             } else {
-                html::errors(self::$errors);
+                echo html::getErrors(self::$errors);
             }
         }
         self::viewFileForm('insert');
@@ -903,6 +934,7 @@ class module {
     public function viewFileFormUpdate($options){
         $id = uri::fragment(2);
         if (isset($_POST['submit'])){
+            
             self::validateInsert('update');
             if (!isset(self::$errors)){
                 $res = $this->updateFile();
