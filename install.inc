@@ -15,4 +15,3 @@ $_INSTALL['MAIN_MENU_ITEM'] = array (
     'admin_only' => 1,
     'section' => 'content'
 );
-

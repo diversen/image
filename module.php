@@ -88,6 +88,7 @@ class module {
                     'reference' => $reference, 
                     'parent_id' => $parent_id)
                 );
+        
         foreach ($rows as $key => $val) {
             $rows[$key]['url_m'] = self::$path . "/download/$val[id]/" . strings::utf8SlugString($val['title']);
             $rows[$key]['url_s'] = self::$path . "/download/$val[id]/" . strings::utf8SlugString($val['title']) . "?size=file_thumb";
@@ -95,8 +96,8 @@ class module {
             $rows[$key]['title'] = $str; 
         }
         
-        $photos = array ('images' => $rows);
-        echo json_encode($photos);
+        $images = array ('images' => $rows);
+        echo json_encode($images);
         die;
     }
     
@@ -192,7 +193,7 @@ class module {
 
         // display image module content
         self::init($options);
-        $this->viewFileFormInsert($options);
+        $this->viewInsert($options);
         
         // display files
         echo self::displayFiles($options);
@@ -213,7 +214,7 @@ class module {
         layout::setMenuFromClassPath($options['reference']);
         self::setHeadlineTitle('delete');
         self::init($options);
-        $this->viewFileFormDelete();
+        $this->viewDelete();
     }
 
 
@@ -234,7 +235,7 @@ class module {
         self::setHeadlineTitle('edit');
 
         self::init($options);
-        $this->viewFileFormUpdate($options);
+        $this->viewUpdate($options);
     }
 
     /**
@@ -246,7 +247,7 @@ class module {
         //die;
         $size = self::getImageSize(); 
         $file = self::getFile($id);
-        //print_r($file); die;
+
         if (empty($file)) {
             moduleloader::setStatus(404);
             return;
@@ -302,7 +303,7 @@ class module {
 
         // insert image
         self::init($options);
-        self::validateInsert();
+        $this->validateInsert();
         if (!isset(self::$errors)) {
             $res = self::insertFiles();
             if ($res) {
@@ -406,6 +407,57 @@ class module {
 
     }
 
+    
+    /**
+    * method for creating a form for insert, update and deleting entries
+    * in module_system module
+    *
+    *
+    * @param string    method (update, delete or insert)
+    * @param int       id (if delete or update)
+    */
+    public function formUpdate($method, $id = null, $values = array(), $caption = null){
+        
+        
+        $f = new html();
+        $f->formStartAry(array('id' => 'image_upload_form', 'onsubmit' => "setFormSubmitting()"));
+
+        $values = $this->getSingleFileInfo($id);
+        $f->init($values, 'submit');
+
+        $legend = lang::translate('Edit image');
+        $submit = lang::translate('Update');
+
+        $f->legend($legend);
+
+        $bytes = conf::getModuleIni('image_max_size');
+        $options = array();
+        
+        $f->fileWithLabel('files[]', $bytes, $options);
+        
+        $f->label('abstract', lang::translate('Title'));
+        $f->textareaSmall('abstract');
+
+        $fields = $this->formFields();
+        if ($fields) {
+            if (in_array('figure', $fields)) {
+                $f->checkbox('figure');
+            }
+        }
+        
+        $f->submit('submit', $submit);
+        $f->formEnd();
+        return $f->getStr();
+    }
+    
+    public function formFields () {
+        $fields = conf::getModuleIni('image_form_fields');
+        if ($fields) {
+            return explode(',', $fields);
+        }
+        return false;
+    }
+    
    /**
     * method for creating a form for insert, update and deleting entries
     * in module_system module
@@ -414,66 +466,29 @@ class module {
     * @param string    method (update, delete or insert)
     * @param int       id (if delete or update)
     */
-    public function viewFileForm($method, $id = null, $values = array(), $caption = null){
+    public function formInsert(){
         
         
-        html::$doUpload = true;
-        $h = new html();
-        
-        $h->formStartAry(array('id' => 'image_upload_form', 'onsubmit'=>"setFormSubmitting()"));
-        if ($method == 'delete' && isset($id)) {
-            $legend = lang::translate('Delete image');
-            $h->legend($legend);
-            $h->submit('submit', lang::translate('Delete'));
-            echo $h->getStr();
-            return;
-        }
-        
-        $legend = '';
-        
-        // update
-        if (isset($id)) {
-            $values = self::getSingleFileInfo($id);
-            $h->init($values, 'submit'); 
-            
-            $legend = lang::translate('Edit image');
-            $submit = lang::translate('Update');
-        } else {
-            $h->init(html::specialEncode($_POST), 'submit'); 
-            $legend = lang::translate('Add images');
-            $submit = lang::translate('Add');
-        }
-        
-        $h->legend($legend);
-        if (conf::getModuleIni('image_user_set_scale')) {
-            $h->label('scale_size', lang::translate('Image width in pixels, e.g. 100'));
-            $h->text('scale_size');
-        }
+        $f = new html();
+        $f->formStartAry(array('id' => 'image_upload_form', 'onsubmit'=>"setFormSubmitting()"));
+
+        $f->init(html::specialEncode($_POST), 'submit');
+        $legend = lang::translate('Add images');
+        $submit = lang::translate('Add');
+
+        $f->legend($legend);
 
         $bytes = conf::getModuleIni('image_max_size');
-        if ($method == 'insert') {
-            $options = array ('multiple'=> "multiple");
-        } else {
-            $options = array();
-        }
+        $options = array ('multiple'=> "multiple");
         
-        $h->fileWithLabel('files[]', $bytes, $options);
+        $f->fileWithLabel('files[]', $bytes, $options);
         
-        $h->label('abstract', lang::translate('Title'));
-        $h->textareaSmall('abstract');
+        $f->label('abstract', lang::translate('Title'));
+        $f->textareaSmall('abstract');
 
-        $h->submit('submit', $submit);
-        $h->formEnd();
-        echo $h->getStr();
-    }
-    
-    /**
-     * return json encoded image rows from reference and parent_id
-     * @return string $json
-     */
-    public static function rpcServer () {
-        
-
+        $f->submit('submit', $submit);
+        $f->formEnd();
+        return $f->getStr();
     }
     
     /**
@@ -646,7 +661,7 @@ window.onload = function() {
      * just check if there is a file. 
      * @param type $mode 
      */
-    public static function validateInsert($mode = false){
+    public function validateInsert($mode = false){
         if ($mode != 'update') {
             if (empty($_FILES['files']['name']['0'])){
                 self::$errors[] = lang::translate('No file was specified');
@@ -749,14 +764,14 @@ window.onload = function() {
      * @param int $id
      * @return array $row
      */
-    public static function getSingleFileInfo($id){
+    public function getSingleFileInfo($id){
 
         $db = new db();
         $search = array (
             'id' => $id
         );
 
-        $fields = array ('id', 'parent_id', 'title', 'abstract', 'published', 'created', 'reference');
+        $fields = array ('id', 'parent_id', 'title', 'figure', 'abstract', 'published', 'created', 'reference');
         $row = $db->selectOne(self::$fileTable, null, $search, $fields, null, 'created', false);
         return $row;
     }
@@ -784,7 +799,9 @@ window.onload = function() {
         $options = self::getOptions();
 
         $med_size = self::getMedSize();
-        $values = db::prepareToPost();
+        $values = db::prepareToPostArray(array('abstract', 'figure'));
+
+        
 
         $options = array();
         $options['maxsize'] = self::$maxsize;
@@ -794,7 +811,6 @@ window.onload = function() {
         $med_size = self::getMedSize();
         
         $files = $this->getUploadedFilesArray();
-        //print_r($files); die;
         
         if (isset($files[0]['name']) && !empty($files[0]['name'])) {
             $file = $files[0];
@@ -831,8 +847,11 @@ window.onload = function() {
             $values['parent_id'] = self::$options['parent_id'];
             $values['reference'] = self::$options['reference'];
             $values['abstract'] = html::specialDecode($_POST['abstract']);
+            $values['figure'] = $_POST['figure'];
+            //die;
             $values['user_id'] = session::getUserId();
 
+            
             $bind = array(
                 'file_org' => PDO::PARAM_LOB, 
                 'file' => PDO::PARAM_LOB,
@@ -848,7 +867,7 @@ window.onload = function() {
      * display a insert file form
      * @param type $options
      */
-    public static function viewFileFormInsertClean($options) {
+    public function viewFileFormInsertClean($options) {
 
         if (isset($options['redirect'])) {
             $redirect = $options['redirect'];
@@ -857,7 +876,7 @@ window.onload = function() {
         }
 
         if (isset($_POST['submit'])){
-            self::validateInsert();
+            $this->validateInsert();
             if (!isset(self::$errors)){
                 $res = $this->insertFiles($options);
                 if ($res){
@@ -870,27 +889,25 @@ window.onload = function() {
                 html::errors(self::$errors);
             }
         }
-        self::viewFileForm('insert');
+        echo $this->formInsert('insert');
     }
     
     /**
      * view form for uploading a file.
      * @param type $options
      */
-    public function viewFileFormInsert($options){
+    public function viewInsert($options){
 
         $redirect = $options['return_url'];
         if (isset($_POST['submit'])){
             
-            self::validateInsert();
-            //$this->uploadJs();
-            //sleep(20);
+            $this->validateInsert();
             
             if (!isset(self::$errors)){
                 $res = $this->insertFiles();
                 if ($res){
                     session::setActionMessage(lang::translate('Image was added'));
-                    self::redirectImageMain($options);
+                    $this->redirectImageMain($options);
                 } else {
                     echo html::getErrors(self::$errors);
                 }
@@ -898,13 +915,13 @@ window.onload = function() {
                 echo html::getErrors(self::$errors);
             }
         }
-        self::viewFileForm('insert');
+        echo $this->formInsert('insert');
     }
 
     /**
      * view form for deleting image
      */
-    public function viewFileFormDelete(){
+    public function viewDelete(){
         
         $id = uri::fragment(2);
         $options = self::getOptions();
@@ -913,16 +930,29 @@ window.onload = function() {
                 $res = self::deleteFile($id);
                 if ($res){
                     session::setActionMessage(lang::translate('Image was deleted'));
-                    self::redirectImageMain($options);
+                    $this->redirectImageMain($options);
                 }
             } else {
                 html::errors(self::$errors);
             }
         }
-        $this->viewFileForm('delete', $id);
+        echo $this->formDelete();
     }
     
-    public static function redirectImageMain ($options) {
+    public function formDelete () {
+        $f = new html();
+        $f->formStartAry(array('id' => 'image_upload_form', 'onsubmit' => "setFormSubmitting()"));
+        $legend = lang::translate('Delete image');
+        $f->legend($legend);
+        $f->submit('submit', lang::translate('Delete'));
+        return $f->getStr();
+    }
+    
+    /**
+     * Redirect to main action 
+     * @param array $options
+     */
+    public function redirectImageMain ($options) {
         $url = "/image/add/?$options[query]";
         http::locationHeader($url);
         
@@ -931,24 +961,24 @@ window.onload = function() {
     /**
      * view form for updating an image
      */
-    public function viewFileFormUpdate($options){
+    public function viewUpdate($options){
         $id = uri::fragment(2);
         if (isset($_POST['submit'])){
             
-            self::validateInsert('update');
+            $this->validateInsert('update');
             if (!isset(self::$errors)){
                 $res = $this->updateFile();
                 if ($res){
                     session::setActionMessage(lang::translate('Image was updated'));
-                    self::redirectImageMain($options);
+                    $this->redirectImageMain($options);
                 } else {
-                    html::errors(self::$errors);
+                    echo html::getErrors(self::$errors);
                 }
             } else {
-                html::errors(self::$errors);
+                echo html::getErrors(self::$errors);
             }
         }
-        $this->viewFileForm('update', $id);
+        echo $this->formUpdate('update', $id);
     }
 
     /**
