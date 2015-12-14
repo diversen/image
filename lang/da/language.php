@@ -11,6 +11,7 @@ $LANG['Image was added'] = 'Billede blev tilsat';
 $LANG['Image deleted'] = 'Billede slettet';
 $LANG['Update'] = 'Opdatering';
 $LANG['Title'] = 'Titel';
+$LANG['Figure'] = 'Figur';
 $LANG['Add'] = 'Tilføje';
 $LANG['No file was specified'] = 'Ingen fil blev angivet';
 $LANG['Download'] = 'Hent';

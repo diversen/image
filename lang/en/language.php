@@ -16,6 +16,7 @@ $LANG['Images'] = 'Images';
 $LANG['Image deleted'] = 'Image deleted';
 $LANG['Update'] = 'Update';
 $LANG['Title'] = 'Title';
+$LANG['Figure'] = 'Figure';
 $LANG['Add'] = 'Add';
 $LANG['No file was specified'] = 'No file was specified';
 $LANG['Download'] = 'Download';

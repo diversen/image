@@ -441,6 +441,7 @@ class module {
         $fields = $this->formFields();
         if ($fields) {
             if (in_array('figure', $fields)) {
+                $f->label('figure', lang::translate('Figure'));
                 $f->checkbox('figure');
             }
         }
