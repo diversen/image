@@ -480,10 +480,15 @@ class module {
         $f->legend($legend);
 
         $bytes = conf::getModuleIni('image_max_size');
-        $options = array ('multiple'=> "multiple");
         
-        $f->fileWithLabel('files[]', $bytes, $options);
+        if (isset(self::$options['multiple']) && self::$options['multiple'] == false) {
+            unset(self::$options['multiple']);
+        } else {
+            self::$options['multiple'] = "multiple";
+        }
         
+        
+        $f->fileWithLabel('files[]', $bytes, self::$options);        
         $f->label('abstract', lang::translate('Title'));
         $f->textareaSmall('abstract');
 
