@@ -252,11 +252,16 @@ class module {
             return;
         }
         
-        
         http::cacheHeaders();
         if (isset($file['mimetype']) && !empty($file['mimetype'])) {
             header("Content-type: $file[mimetype]");
         }
+        
+        
+        if (method_exists('modules\image\config', 'checkAccessDownload')) {
+            \modules\image\config::checkAccessDownload($file);
+        }
+        
         echo $file[$size];
         die;
     
