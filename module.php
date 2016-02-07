@@ -244,7 +244,6 @@ class module {
     public function downloadAction() {
         
         $id = uri::fragment(2);
-        //die;
         $size = self::getImageSize(); 
         $file = self::getFile($id);
 
