@@ -533,7 +533,7 @@ class module {
      *
      * @return boolean true on success or false on failure
      */
-    public function insertFiles ($input = 'files') {
+    public function insertFiles () {
         
         $_POST = html::specialDecode($_POST);
         
@@ -888,7 +888,7 @@ window.onload = function() {
         if (isset($_POST['submit'])){
             $this->validateInsert();
             if (!isset(self::$errors)){
-                $res = $this->insertFiles($options);
+                $res = $this->insertFiles();
                 if ($res){
                     session::setActionMessage(lang::translate('Image was added'));
                     http::locationHeader($redirect);
