@@ -1,0 +1,12 @@
+<?php
+
+namespace modules\image;
+
+use diversen\conf;
+use diversen\session;
+use modules\content\book\module as book;
+class config {
+    
+    public static function checkAccessDownload ($file) {}
+
+}

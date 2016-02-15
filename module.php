@@ -121,6 +121,11 @@ class module {
      */
     public static function checkAccess ($options) {
         
+        // Admin user is allowed
+        if (session::isAdmin()) {
+            return true;
+        }
+        
         // check access
         if (!session::checkAccessClean(self::$allow)) {
             return false;
@@ -788,9 +793,6 @@ window.onload = function() {
      */
     public static function getFile($id){
         $db = new db();
-
-        
-        //$db->selectOne(self::$fileTable, 'id', $id, array($size));
         $row = $db->selectOne(self::$fileTable, 'id', $id);
         return $row;
     }
