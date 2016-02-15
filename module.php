@@ -249,7 +249,6 @@ class module {
     public function downloadAction() {
         
         $id = uri::fragment(2);
-        //die;
         $size = self::getImageSize(); 
         $file = self::getFile($id);
 
@@ -258,11 +257,16 @@ class module {
             return;
         }
         
-        
         http::cacheHeaders();
         if (isset($file['mimetype']) && !empty($file['mimetype'])) {
             header("Content-type: $file[mimetype]");
         }
+        
+        
+        if (method_exists('modules\image\config', 'checkAccessDownload')) {
+            \modules\image\config::checkAccessDownload($file);
+        }
+        
         echo $file[$size];
         die;
     
@@ -534,7 +538,7 @@ class module {
      *
      * @return boolean true on success or false on failure
      */
-    public function insertFiles ($input = 'files') {
+    public function insertFiles () {
         
         $_POST = html::specialDecode($_POST);
         
@@ -886,7 +890,7 @@ window.onload = function() {
         if (isset($_POST['submit'])){
             $this->validateInsert();
             if (!isset(self::$errors)){
-                $res = $this->insertFiles($options);
+                $res = $this->insertFiles();
                 if ($res){
                     session::setActionMessage(lang::translate('Image was added'));
                     http::locationHeader($redirect);
