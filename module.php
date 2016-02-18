@@ -91,13 +91,26 @@ class module {
      * @return type
      */
     public function rpcAction () {
-        $reference = @$_GET['reference'];
-        $parent_id = @$_GET['parent_id'];
-        
-        if (empty($reference) || empty($parent_id)) {
-            return;
+
+        // Check for sane options
+        if (!isset($_GET['parent_id'], $_GET['reference'] )) { 
+            return false;
         }
         
+        $reference = $_GET['reference'];
+        $parent_id = $_GET['parent_id'];
+        
+        // Fine tuning of access can be set in image/config.php
+        if (method_exists('modules\image\config', 'checkAccess')) {
+            $check = new \modules\image\config();
+            if (!$check->checkAccess($parent_id)) {
+                moduleloader::setStatus(403);
+                return false;
+            }
+        }
+        
+        
+        // Get rows
         $rows = $this->getAllFilesInfo(
                 array(
                     'reference' => $reference, 
@@ -117,10 +130,16 @@ class module {
     }
     
     /**
-     * get options from QUERY
-     * @return array $options
+     * Get options from $_GET
+     * @return array $options ['parent_id', 'return_url', 'reference', 'query']
      */
     public function getOptions() {
+        
+        // Check for sane options
+        if (!isset($_GET['parent_id'], $_GET['return_url'], $_GET['reference'] )) { 
+            return false;
+        }
+        
         $options = array
             ('parent_id' => $_GET['parent_id'],
             'return_url' => $_GET['return_url'],
@@ -131,37 +150,43 @@ class module {
     
     /**
      * Check access to module based on options and ini settings and action param
-     * @param string $action 'add', 'edit', 'delete'
+     * @param string $action 'add', 'edit', 'delete' (NOT used yet)
      * @return boolean $res true if allowed else false
      */
     public function checkAccess ($action = 'add') {
         
-        // Admin user is allowed
+        // Options used ['parent_id', 'reference']
+        $options = $this->getOptions();
+        if (!$options) {
+            return false;
+        }
+    
+        // Admin user is always allowed
         if (session::isAdmin()) {
             return true;
         }
         
-        // Default to allow - e.g. user. 
+        // Who is allowed - e.g. user or admin 
         // If 'admin' then only admin users can add images
         $allow = conf::getModuleIni('image_allow_edit');
         if (!session::checkAccessClean($allow)) {
             return false;
         }
-        
-        // Options used ['parent_id', 'reference']
-        $options = $this->getOptions();
 
+        // Fine tuning of access can be set in image/config.php
+        if (method_exists('modules\image\config', 'checkAccess')) {
+            $check = new \modules\image\config();
+            return $check->checkAccess($options['parent_id']);
+        }
+        
+        
         // If allow is set to user - this module only allow user to edit the images
         // he owns - based on 'reference' and 'parent_id'
         if ($allow == 'user') {
-            echo $options['reference'];
-            // Get table name from reference
-
             if (!admin::tableExists($options['reference'])) {
                 return false;
             }
             if (!user::ownID($options['reference'], $options['parent_id'], session::getUserId())) {
-                moduleloader::setStatus(403);
                 return false;
             }
         }
@@ -200,20 +225,15 @@ class module {
      * @return mixed
      */
     public function addAction() {
-        
-        // Check for parent module options
-        if (!isset($_GET['parent_id'], $_GET['return_url'], $_GET['reference'] )) { 
-            moduleloader::setStatus(403);
-            return false;
-        }
-        
-        // Get options from QUERY
-        $options = $this->getOptions();
 
-        if (!$this->checkAccess('add')) {
+        // Check access
+        if (!$this->checkAccess()) {
             moduleloader::setStatus(403);
             return false;
         }
+        
+        // Options ARE sane now
+        $options = $this->getOptions();
         
         // Set headline and return link
         $this->setHeadlineTitle('add');
@@ -232,11 +252,15 @@ class module {
      * @return type
      */
     public function deleteAction() {
-        $options = $this->getOptions();
-        if (!$this->checkAccess('delete')) {
+        // Check access
+        if (!$this->checkAccess()) {
             moduleloader::setStatus(403);
-            return;
+            return false;
         }
+        
+        // Options ARE sane now
+        $options = $this->getOptions();
+        
         
         // Set headline and return link
         $this->setHeadlineTitle('delete');
@@ -251,13 +275,14 @@ class module {
      * @return void
      */
     public function editAction() {
-        $options = $this->getOptions();
-        
-        // check access
-        if (!$this->checkAccess('edit')) {
+        // Check access
+        if (!$this->checkAccess()) {
             moduleloader::setStatus(403);
-            return;
-        } 
+            return false;
+        }
+        
+        // Options ARE sane now
+        $options = $this->getOptions();
         
         // Set headline and return link
         $this->setHeadlineTitle('edit');
@@ -267,85 +292,51 @@ class module {
     }
 
     /**
-     * download controller
+     * Download controller
+     * By default all images are public. You can change this
+     * using a \modules\image\config file
      */
     public function downloadAction() {
         
         $id = uri::fragment(2);
         $size = $this->getImageSize(); 
-        $file = $this->getFile($id);
+        $info = $this->getSingleFileInfo($id);
 
-        if (empty($file)) {
+        if (empty($info)) {
             moduleloader::setStatus(404);
             return;
         }
         
+        // Fine tuning of access can be set in image/config.php
+        if (method_exists('modules\image\config', 'checkAccessDownload')) {
+            $check = new \modules\image\config();
+            $res = $check->checkAccessDownload($id);
+            
+            if (!$res) {
+                $this->sendBlankImage();
+                die();
+            }
+        }
+        
+        // Send file
+        $file = $this->getFile($id);
         http::cacheHeaders();
         if (isset($file['mimetype']) && !empty($file['mimetype'])) {
             header("Content-type: $file[mimetype]");
         }
-
-        if (method_exists('modules\image\config', 'checkAccessDownload')) {
-            \modules\image\config::checkAccessDownload($file);
-        }
         
         echo $file[$size];
         die;
+    }
     
-    }
-
     /**
-     * ajaxhtml action (test)
-     * @param type $url
+     * Send a blank image if user is not allwed to see the real image
      */
-    public function ajaxhtmlAction($url) {
-        $h = new html();
-        echo $h->fileHtml5($url);
-    }
-
-    /**
-     * ajax action 
-     * uploads from an ajax request. 
-     */
-    public function ajaxAction() {
-        
-        // check basic access
-        if (!session::checkAccessFromModuleIni('image_allow_edit')) {
-            moduleloader::setStatus(403);
-            echo lang::translate("Access denied");
-            die();
-        }
-
-        // if user - check if user owns parent reference
-        $allow = conf::getModuleIni('image_allow_edit');
-        if ($allow == 'user') {
-
-            //$table = moduleloader::moduleReferenceToTable($_GET['reference']);
-            if (!user::ownID('image', $_GET['parent_id'], session::getUserId())) {
-                moduleloader::setStatus(403);
-                echo lang::translate("Access denied");
-                die();
-            }
-        }
-
-        $options = array();
-        $options['parent_id'] = $_GET['parent_id'];
-        $options['reference'] = $_GET['reference'];
-
-        // insert image
-        $this->init($options);
-        $this->validateInsert();
-        if (empty($this->errors)) {
-            $res = $this->insertFiles();
-            if ($res) {
-                echo lang::translate('Image was added');
-            } else {
-                echo reset($this->errors);
-            }
-        } else {
-            echo reset($this->errors);
-        }
-        die();
+    public function sendBlankImage () {
+        http::cacheHeaders();
+        header("Content-type: image/gif");
+        $blank = conf::pathModules() . "/image/assets/blank.gif";
+        readfile($blank); 
     }
     
     /**
