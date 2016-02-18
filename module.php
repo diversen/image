@@ -31,9 +31,11 @@ use Gregwar\Image\Image;
 class module {
 
 
-    public $errors = null;
-    public $status = null;
-    public $parent_id;
+    /**
+     * Var holding errors
+     * @var type 
+     */
+    public $errors = array();
     public $maxsize = 2000000; // 2 mb max size
     public $options = array();
     public $path = '/image';
@@ -80,7 +82,7 @@ class module {
             return;
         }
         
-        $rows = self::getAllFilesInfo(
+        $rows = $this->getAllFilesInfo(
                 array(
                     'reference' => $reference, 
                     'parent_id' => $parent_id)
@@ -198,7 +200,7 @@ class module {
         $this->viewInsert($options);
         
         // display files
-        echo self::displayFiles($options);
+        echo $this->displayFiles($options);
     }
 
 
@@ -246,8 +248,8 @@ class module {
     public function downloadAction() {
         
         $id = uri::fragment(2);
-        $size = self::getImageSize(); 
-        $file = self::getFile($id);
+        $size = $this->getImageSize(); 
+        $file = $this->getFile($id);
 
         if (empty($file)) {
             moduleloader::setStatus(404);
@@ -310,8 +312,8 @@ class module {
         // insert image
         $this->init($options);
         $this->validateInsert();
-        if (!isset($this->errors)) {
-            $res = self::insertFiles();
+        if (empty($this->errors)) {
+            $res = $this->insertFiles();
             if ($res) {
                 echo lang::translate('Image was added');
             } else {
@@ -324,8 +326,8 @@ class module {
     }
     
     /**
-     * admin action for checking user image uploads
-     * @return boolean
+     * Admin action for checking user image uploads
+     * @return boolean $res
      */
     public function adminAction () {
         if (!session::checkAccess('admin')) {
@@ -356,7 +358,7 @@ class module {
         echo "<table>";
         foreach ($rows as $row) {
             echo "<tr>";
-            echo "<td>" . self::getImgTag($row, 'file_thumb') . "</td>";
+            echo "<td>" . $this->getImgTag($row, 'file_thumb') . "</td>";
             echo "<td>"; 
             echo user::getAdminLink($row['user_id']);
             echo "<br />";
@@ -372,7 +374,7 @@ class module {
     
 
     /**
-     * init
+     * Init options
      * @param type $options
      */
     public function init ($options = null){
@@ -385,7 +387,7 @@ class module {
     }
     
     /**
-     * check if image exists
+     * Check if image exists
      * @param int $id
      * @param string $reference
      * @return boolean
@@ -399,7 +401,7 @@ class module {
 
     
     /**
-     * get a image html tag
+     * Get a image html tag
      * @param array $row
      * @param string $size
      * @param array $options
@@ -413,16 +415,11 @@ class module {
 
     }
 
-    
     /**
-    * method for creating a form for insert, update and deleting entries
-    * in module_system module
-    *
-    *
-    * @param string    method (update, delete or insert)
-    * @param int       id (if delete or update)
+    * Form update
+    * @param int $id image id 
     */
-    public function formUpdate($method, $id = null, $values = array(), $caption = null){
+    public function formUpdate($id){
         
         
         $f = new html();
@@ -434,13 +431,7 @@ class module {
         $legend = lang::translate('Edit image');
         $submit = lang::translate('Update');
 
-        $f->legend($legend);
-
-        $bytes = conf::getModuleIni('image_max_size');
-        $options = array();
-        
-        $f->fileWithLabel('files[]', $bytes, $options);
-        
+        $f->legend($legend);        
         $f->label('abstract', lang::translate('Title'));
         $f->textareaSmall('abstract');
 
@@ -466,15 +457,9 @@ class module {
     }
     
    /**
-    * method for creating a form for insert, update and deleting entries
-    * in module_system module
-    *
-    *
-    * @param string    method (update, delete or insert)
-    * @param int       id (if delete or update)
+    * Insert form
     */
     public function formInsert(){
-        
         
         $f = new html();
         $f->formStartAry(array('id' => 'image_upload_form', 'onsubmit'=>"setFormSubmitting()"));
@@ -494,7 +479,6 @@ class module {
             $options['multiple'] = "multiple";
         }
         
-        
         $f->fileWithLabel('files[]', $bytes, $options);        
         $f->label('abstract', lang::translate('Title'));
         $f->textareaSmall('abstract');
@@ -505,41 +489,24 @@ class module {
     }
     
     /**
-     * get full web path to a image.
+     * Get full web path to an image.
      * @param type $row
      * @param type $size
      * @return string
      */
-    public  function getFullWebPath ($row, $size = null) {
+    public function getFullWebPath ($row, $size = null) {
         $str = $this->path . "/download/$row[id]/" . strings::utf8SlugString($row['title']);
         return $str;
     }
-    
+ 
     /**
-     * methoding for setting med size if allowed
-     */
-    public  function getMedSize () {
-        $med_size = 0;
-        if (isset($_POST['scale_size']) && !empty($_POST['scale_size'])  && $_POST['scale_size'] > 0 ) {
-            $med_size = (int)$_POST['scale_size']; 
-            unset($_POST['scale_size']);
-        }
-        if (!$med_size) {
-            $med_size = conf::getModuleIni('image_scale_width');
-        }
-        return $med_size;
-    }
-
-    /**
-     * method for inserting a module into the database
+     * Method for inserting multiple files
      * (access control is cheched in controller file)
-     *
-     * @return boolean true on success or false on failure
+     * @return boolean $res true on success or false on failure
      */
     public function insertFiles () {
         
         $_POST = html::specialDecode($_POST);
-        
         $ary = $this->getUploadedFilesArray();
         foreach($ary as $file) {
             $res = $this->insertFile($file);
@@ -549,27 +516,6 @@ class module {
         }
         return true;
     }
-    
-    public function uploadJs () { ?>
-<script>
-var formSubmitting = false;
-var setFormSubmitting = function() { formSubmitting = true; };
-
-window.onload = function() {
-    window.addEventListener("beforeunload", function (e) {
-        if (formSubmitting) {
-            return undefined;
-        }
-
-        var confirmationMessage = 'It looks like you have been editing something. '
-                                + 'If you leave before saving, your changes will be lost.';
-
-        (e || window.event).returnValue = confirmationMessage; //Gecko + IE
-        return confirmationMessage; //Gecko + Webkit, Safari, Chrome etc.
-    });
-};
-</script>
-    <?php }
     
     /**
      * Get uploaded files as a organized array
@@ -596,7 +542,11 @@ window.onload = function() {
         return $ary;
     }
 
-    
+    /**
+     * Insert a file
+     * @param array $file e.g. $_FILES[0] array
+     * @return boolean $res
+     */
     public function insertFile ($file) {
 
         $options = array();
@@ -604,7 +554,7 @@ window.onload = function() {
         $options['allow_mime'] = $this->allowMime;
         
         // get med size
-        $med_size = self::getMedSize();
+        $med_size = conf::getModuleIni('image_scale_width');
         
         // get fp - will also check for error in upload
         $fp = blob::getFP($file, $options);
@@ -652,6 +602,7 @@ window.onload = function() {
     }
     
     /**
+     * Scale image
      * @param type $image the image file to scale from
      * @param type $thumb the image file to scale to
      * @param type $width the x factor or width of the image
@@ -669,9 +620,8 @@ window.onload = function() {
     }
 
     /**
-     * validate before insert. No check for e.g. size
-     * this is checked but no errors are given. 
-     * just check if there is a file. 
+     * Validate files before insert. No check for e.g. size.
+     * This is checked in upload class
      * @param type $mode 
      */
     public function validateInsert($mode = false){
@@ -683,10 +633,9 @@ window.onload = function() {
     }
 
     /**
-     * method for delting a file
-     *
-     * @param   int     id of file
-     * @return  boolean true on success and false on failure
+     * Delete a file
+     * @param   int     $id id of file
+     * @return  boolean $res true on success and false on failure
      *
      */
     public function deleteFile($id){
@@ -696,7 +645,7 @@ window.onload = function() {
 
     
     /**
-     * get admin when operating as a sub module
+     * Get admin options when operating as a sub module
      * @param array $options
      * @return string  
      */
@@ -719,9 +668,9 @@ window.onload = function() {
      * @return string $html
      */
     public function displayFiles($options){
-
+        
         // get info about all images
-        $rows = self::getAllFilesInfo($options);
+        $rows = $this->getAllFilesInfo($options);
         
         // create string with HTML
         $str = "";
@@ -753,7 +702,7 @@ window.onload = function() {
     }
     
     /**
-     * get info about all files from array with parent_id and reference
+     * Get info about all files from array with parent_id and reference
      * @param array $options
      * @return array $rows array of rows
      */
@@ -767,14 +716,14 @@ window.onload = function() {
         $fields = array ('id', 'parent_id', 'title', 'abstract', 'published', 'created');
         $rows = $db->selectAll($this->fileTable, $fields, $search, null, null, 'created', false);
         foreach ($rows as $key => $row) {
-            $rows[$key]['image_url'] = self::getFullWebPath($row);
+            $rows[$key]['image_url'] = $this->getFullWebPath($row);
         } 
         
         return $rows;
     }
 
     /**
-     * get info about a single image
+     * Get all info about an image - excluding the blob fields
      * @param int $id
      * @return array $row
      */
@@ -791,7 +740,7 @@ window.onload = function() {
     }
 
     /**
-     * method for fetching one full file row
+     * Method for fetching one full file row
      * @return array $row
      */
     public  function getFile($id){
@@ -801,76 +750,15 @@ window.onload = function() {
     }
 
     /**
-     * method for updating a module in database
+     * Method for updating a module in database
      * @return boolean $res true on success or false on failure
      */
-    public function updateFile() {
+    public function updateFileDb() {
 
         $id = uri::fragment(2);
-        $options = $this->getOptions();
-
-        $med_size = self::getMedSize();
-        $values = db::prepareToPostArray(array('abstract', 'figure'));
-
-        
-
-        $options = array();
-        $options['maxsize'] = $this->maxsize;
-        $options['allow_mime'] = $this->allowMime;
-        
-        // get med size
-        $med_size = self::getMedSize();
-        
-        $files = $this->getUploadedFilesArray();
-        
-        if (isset($files[0]['name']) && !empty($files[0]['name'])) {
-            $file = $files[0];
-            // get fp - will also check for error in upload
-            $fp = blob::getFP($file, $options);
-            if (!$fp) {
-                $this->errors = blob::$errors;
-                return false;
-            } 
-
-            $values['file_org'] = $fp;
-
-            // we got a valid file pointer checked for errors
-            // now we use the tmp file when scaleing. Only
-            // scale if an scaleWidth has been set. 
-
-            $this->scaleImage(
-                    $file['tmp_name'], 
-                    $file['tmp_name'] . "-med", 
-                    $med_size);
-
-            $fp_med = fopen($file['tmp_name'] . "-med", 'rb');
-            $values['file'] = $fp_med;
-
-            $this->scaleImage(
-                    $file['tmp_name'], 
-                    $file['tmp_name'] . "-thumb", 
-                    conf::getModuleIni('image_scale_width_thumb'));
-            $fp_thumb = fopen($file['tmp_name'] . "-thumb", 'rb'); 
-
-            $values['file_thumb'] = $fp_thumb;
-            $values['title'] = $file['name'];
-            $values['mimetype'] = $file['type'];
-            $values['parent_id'] = $this->options['parent_id'];
-            $values['reference'] = $this->options['reference'];
-            $values['abstract'] = html::specialDecode($_POST['abstract']);
-            $values['figure'] = $_POST['figure'];
-            //die;
-            $values['user_id'] = session::getUserId();
-
-            
-            $bind = array(
-                'file_org' => PDO::PARAM_LOB, 
-                'file' => PDO::PARAM_LOB,
-                'file_thumb' => PDO::PARAM_LOB,);
-
-        }
+        $values = db::prepareToPostArray(array('abstract', 'figure'));        
         $db = new db();
-        $res = $db->update($this->fileTable, $values, $id, $bind);
+        $res = $db->update($this->fileTable, $values, $id);
         return $res;
     }
 
@@ -894,10 +782,10 @@ window.onload = function() {
                     session::setActionMessage(lang::translate('Image was added'));
                     http::locationHeader($redirect);
                 } else {
-                    html::errors($this->errors);
+                    echo html::getErrors($this->errors);
                 }
             } else {
-                html::errors($this->errors);
+                echo html::getErrors($this->errors);
             }
         }
         echo $this->formInsert('insert');
@@ -909,12 +797,11 @@ window.onload = function() {
      */
     public function viewInsert($options){
 
-        $redirect = $options['return_url'];
         if (isset($_POST['submit'])){
-            
+
             $this->validateInsert();
             
-            if (!isset($this->errors)){
+            if (empty($this->errors)){
                 $res = $this->insertFiles();
                 if ($res){
                     session::setActionMessage(lang::translate('Image was added'));
@@ -930,15 +817,15 @@ window.onload = function() {
     }
 
     /**
-     * view form for deleting image
+     * View form delete image
      */
     public function viewDelete(){
         
         $id = uri::fragment(2);
         $options = $this->getOptions();
         if (isset($_POST['submit'])){
-            if (!isset($this->errors)){
-                $res = self::deleteFile($id);
+            if (empty($this->errors)){
+                $res = $this->deleteFile($id);
                 if ($res){
                     session::setActionMessage(lang::translate('Image was deleted'));
                     $this->redirectImageMain($options);
@@ -950,6 +837,10 @@ window.onload = function() {
         echo $this->formDelete();
     }
     
+    /**
+     * Display a delete image from 
+     * @return type
+     */
     public function formDelete () {
         $f = new html();
         $f->formStartAry(array('id' => 'image_upload_form', 'onsubmit' => "setFormSubmitting()"));
@@ -960,7 +851,7 @@ window.onload = function() {
     }
     
     /**
-     * Redirect to main action 
+     * Redirect to main action from $_GET options 
      * @param array $options
      */
     public function redirectImageMain ($options) {
@@ -970,15 +861,15 @@ window.onload = function() {
     }
 
     /**
-     * view form for updating an image
+     * View form for updating an image
      */
     public function viewUpdate($options){
         $id = uri::fragment(2);
         if (isset($_POST['submit'])){
             
             $this->validateInsert('update');
-            if (!isset($this->errors)){
-                $res = $this->updateFile();
+            if (empty($this->errors)){
+                $res = $this->updateFileDb();
                 if ($res){
                     session::setActionMessage(lang::translate('Image was updated'));
                     $this->redirectImageMain($options);
@@ -989,11 +880,11 @@ window.onload = function() {
                 echo html::getErrors($this->errors);
             }
         }
-        echo $this->formUpdate('update', $id);
+        echo $this->formUpdate($id);
     }
 
     /**
-     * get a size of image to deliver based on $_GET['size']
+     * Get a size of an image based on $_GET['size']
      * @return string
      */
     public  function getImageSize () {
