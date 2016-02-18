@@ -271,7 +271,7 @@ class module {
 
 
     /**
-     * edit action
+     * Edit action
      * @return void
      */
     public function editAction() {
