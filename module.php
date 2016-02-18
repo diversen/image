@@ -31,30 +31,27 @@ use Gregwar\Image\Image;
 class module {
 
 
-    public static $errors = null;
-    public static $status = null;
-    public static $parent_id;
-    public static $maxsize = 2000000; // 2 mb max size
-    public static $options = array();
-    public static $path = '/image';
-    public static $fileTable = 'image';
-    public static $scaleWidth;
-    public static $allow;
-    public static $allowMime = 
+    public $errors = null;
+    public $status = null;
+    public $parent_id;
+    public $maxsize = 2000000; // 2 mb max size
+    public $options = array();
+    public $path = '/image';
+    public $fileTable = 'image';
+    public $scaleWidth;
+    public $allow;
+    public $allowMime = 
         array ('image/gif', 'image/jpeg', 'image/pjpeg', 'image/png');
 
     /**
-     *
      * constructor sets init vars
      */
-    function __construct($options = null) {
-        
-        // we include module in order to insure that ini settings are loaded.
-        // these needs to be loaded when using the module as a submodule.
+    public function __construct($options = null) {
+
         moduleloader::includeModule('image');
-        self::$options = $options;
+        $this->options = $options;
         if (!isset($options['allow'])) {
-            self::$allow = conf::getModuleIni('image_allow_edit');
+            $this->allow = conf::getModuleIni('image_allow_edit');
         }
     }
 
@@ -66,13 +63,13 @@ class module {
      */
     public function deleteAll($parent, $reference) {
         $search = array('parent_id =' => $parent, 'reference =' => $reference);
-        $res = q::delete(self::$fileTable)->filterArray($search)->exec();
+        $res = q::delete($this->fileTable)->filterArray($search)->exec();
         return $res;
     }
 
     /**
      * Note: All images are public
-     * Expose images in json format
+     * Expose images in JSON format
      * @return type
      */
     public function rpcAction () {
@@ -90,8 +87,8 @@ class module {
                 );
         
         foreach ($rows as $key => $val) {
-            $rows[$key]['url_m'] = self::$path . "/download/$val[id]/" . strings::utf8SlugString($val['title']);
-            $rows[$key]['url_s'] = self::$path . "/download/$val[id]/" . strings::utf8SlugString($val['title']) . "?size=file_thumb";
+            $rows[$key]['url_m'] = $this->path . "/download/$val[id]/" . strings::utf8SlugString($val['title']);
+            $rows[$key]['url_s'] = $this->path . "/download/$val[id]/" . strings::utf8SlugString($val['title']) . "?size=file_thumb";
             $str = strings::sanitizeUrlRigid(html::specialDecode($val['abstract']));
             $rows[$key]['title'] = $str; 
         }
@@ -105,7 +102,7 @@ class module {
      * get options from QUERY
      * @return array $options
      */
-    public static function getOptions() {
+    public function getOptions() {
         $options = array
             ('parent_id' => $_GET['parent_id'],
             'return_url' => $_GET['return_url'],
@@ -119,7 +116,7 @@ class module {
      * @param array $options
      * @return void
      */
-    public static function checkAccess ($options) {
+    public function checkAccess ($options) {
         
         // Admin user is allowed
         if (session::isAdmin()) {
@@ -127,13 +124,13 @@ class module {
         }
         
         // check access
-        if (!session::checkAccessClean(self::$allow)) {
+        if (!session::checkAccessClean($this->allow)) {
             return false;
         }
 
         // if allow is set to user - this module only allow user to edit his images
         // to references and parent_ids which he owns
-        if (self::$allow == 'user') {
+        if ($this->allow == 'user') {
             
             $table = moduleloader::moduleReferenceToTable($options['reference']);
             if (!admin::tableExists($table)) {
@@ -151,9 +148,9 @@ class module {
      * set a headline and page title based on action
      * @param string $action 'add', 'edit', 'delete'
      */
-    public static function setHeadlineTitle ($action = '') {
+    public function setHeadlineTitle ($action = '') {
 
-        $options = self::getOptions();
+        $options = $this->getOptions();
         if ($action == 'add') {
             $title = lang::translate('Add images');
         }
@@ -186,18 +183,18 @@ class module {
         }
         
         // get options from QUERY
-        $options = self::getOptions();
+        $options = $this->getOptions();
         
-        if (!self::checkAccess($options)) {
+        if (!$this->checkAccess($options)) {
             moduleloader::setStatus(403);
             return false;
         }
 
         layout::setMenuFromClassPath($options['reference']);
-        self::setHeadlineTitle('add');
+        $this->setHeadlineTitle('add');
 
         // display image module content
-        self::init($options);
+        $this->init($options);
         $this->viewInsert($options);
         
         // display files
@@ -210,15 +207,15 @@ class module {
      * @return type
      */
     public function deleteAction() {
-        $options = self::getOptions();
-        if (!self::checkAccess($options)) {
+        $options = $this->getOptions();
+        if (!$this->checkAccess($options)) {
             moduleloader::setStatus(403);
             return;
         }
 
         layout::setMenuFromClassPath($options['reference']);
-        self::setHeadlineTitle('delete');
-        self::init($options);
+        $this->setHeadlineTitle('delete');
+        $this->init($options);
         $this->viewDelete();
     }
 
@@ -228,18 +225,18 @@ class module {
      * @return void
      */
     public function editAction() {
-        $options = self::getOptions();
+        $options = $this->getOptions();
         
         // check access
-        if (!self::checkAccess($options)) {
+        if (!$this->checkAccess($options)) {
             moduleloader::setStatus(403);
             return;
         } 
         
         layout::setMenuFromClassPath($options['reference']);
-        self::setHeadlineTitle('edit');
+        $this->setHeadlineTitle('edit');
 
-        self::init($options);
+        $this->init($options);
         $this->viewUpdate($options);
     }
 
@@ -311,17 +308,17 @@ class module {
         $options['reference'] = $_GET['reference'];
 
         // insert image
-        self::init($options);
+        $this->init($options);
         $this->validateInsert();
-        if (!isset(self::$errors)) {
+        if (!isset($this->errors)) {
             $res = self::insertFiles();
             if ($res) {
                 echo lang::translate('Image was added');
             } else {
-                echo reset(self::$errors);
+                echo reset($this->errors);
             }
         } else {
-            echo reset(self::$errors);
+            echo reset($this->errors);
         }
         die();
     }
@@ -338,7 +335,7 @@ class module {
         layout::attachMenuItem('module', 
                 array(
                     'title' => lang::translate('Images'), 
-                    'url' => self::$path . '/admin'));
+                    'url' => $this->path . '/admin'));
         
         $per_page = 10;
         $total = q::numRows('image')->fetch();
@@ -347,7 +344,7 @@ class module {
         $from = @$_GET['from'];
         if (isset($_GET['delete'])) {
             $this->deleteFile($_GET['delete']);    
-            http::locationHeader(self::$path . "/admin?from=$from", 
+            http::locationHeader($this->path . "/admin?from=$from", 
                     lang::translate('Image deleted'));
         }
         
@@ -365,7 +362,7 @@ class module {
             echo "<br />";
             echo user::getProfileLink($row['user_id']);
             echo "<br />";
-            echo html::createLink(self::$path . "/admin?delete=$row[id]&from=$from", lang::translate('Delete image'));
+            echo html::createLink($this->path . "/admin?delete=$row[id]&from=$from", lang::translate('Delete image'));
             echo "</td>";
             echo "</tr>";
         }
@@ -378,12 +375,12 @@ class module {
      * init
      * @param type $options
      */
-    public static function init ($options = null){
-        self::$options = $options;
-        self::$scaleWidth = conf::getModuleIni('image_scale_width');
-        self::$path = '/image';
-        self::$fileTable = 'image';
-        self::$maxsize = conf::getModuleIni('image_max_size');
+    public function init ($options = null){
+        $this->options = $options;
+        $this->scaleWidth = conf::getModuleIni('image_scale_width');
+        $this->path = '/image';
+        $this->fileTable = 'image';
+        $this->maxsize = conf::getModuleIni('image_max_size');
   
     }
     
@@ -393,7 +390,7 @@ class module {
      * @param string $reference
      * @return boolean
      */
-    public static function imageExists ($id, $reference) {
+    public  function imageExists ($id, $reference) {
         return q::select('image', 'id')->
                 filter('parent_id =', $id)->condition('AND')->
                 filter('reference =', $reference)->
@@ -408,10 +405,10 @@ class module {
      * @param array $options
      * @return string $html image tag
      */
-    public static function getImgTag ($row, $size = "file_org", $options = array ()) {
+    public  function getImgTag ($row, $size = "file_org", $options = array ()) {
         return $img_tag = html::createHrefImage(
-                self::$path . "/download/$row[id]/$row[title]?size=file_org", 
-                self::$path . "/download/$row[id]/$row[title]?size=$size", 
+                $this->path . "/download/$row[id]/$row[title]?size=file_org", 
+                $this->path . "/download/$row[id]/$row[title]?size=$size", 
                 $options);
 
     }
@@ -489,15 +486,16 @@ class module {
         $f->legend($legend);
 
         $bytes = conf::getModuleIni('image_max_size');
+        $options = $this->options;
         
-        if (isset(self::$options['multiple']) && self::$options['multiple'] == false) {
-            unset(self::$options['multiple']);
+        if (isset($options['multiple']) && $options['multiple'] == false) {
+            unset($options['multiple']);
         } else {
-            self::$options['multiple'] = "multiple";
+            $options['multiple'] = "multiple";
         }
         
         
-        $f->fileWithLabel('files[]', $bytes, self::$options);        
+        $f->fileWithLabel('files[]', $bytes, $options);        
         $f->label('abstract', lang::translate('Title'));
         $f->textareaSmall('abstract');
 
@@ -512,15 +510,15 @@ class module {
      * @param type $size
      * @return string
      */
-    public static function getFullWebPath ($row, $size = null) {
-        $str = self::$path . "/download/$row[id]/" . strings::utf8SlugString($row['title']);
+    public  function getFullWebPath ($row, $size = null) {
+        $str = $this->path . "/download/$row[id]/" . strings::utf8SlugString($row['title']);
         return $str;
     }
     
     /**
      * methoding for setting med size if allowed
      */
-    public static function getMedSize () {
+    public  function getMedSize () {
         $med_size = 0;
         if (isset($_POST['scale_size']) && !empty($_POST['scale_size'])  && $_POST['scale_size'] > 0 ) {
             $med_size = (int)$_POST['scale_size']; 
@@ -602,8 +600,8 @@ window.onload = function() {
     public function insertFile ($file) {
 
         $options = array();
-        $options['maxsize'] = self::$maxsize;
-        $options['allow_mime'] = self::$allowMime;
+        $options['maxsize'] = $this->maxsize;
+        $options['allow_mime'] = $this->allowMime;
         
         // get med size
         $med_size = self::getMedSize();
@@ -611,7 +609,7 @@ window.onload = function() {
         // get fp - will also check for error in upload
         $fp = blob::getFP($file, $options);
         if (!$fp) {
-            self::$errors = blob::$errors;
+            $this->errors = blob::$errors;
             return false;
         } 
         
@@ -621,7 +619,7 @@ window.onload = function() {
         // now we use the tmp file when scaleing. Only
         // scale if an scaleWidth has been set. 
         
-        self::scaleImage(
+        $this->scaleImage(
                 $file['tmp_name'], 
                 $file['tmp_name'] . "-med", 
                 $med_size);
@@ -629,7 +627,7 @@ window.onload = function() {
         $fp_med = fopen($file['tmp_name'] . "-med", 'rb');
         $values['file'] = $fp_med;
         
-        self::scaleImage(
+        $this->scaleImage(
                 $file['tmp_name'], 
                 $file['tmp_name'] . "-thumb", 
                 conf::getModuleIni('image_scale_width_thumb'));
@@ -638,8 +636,8 @@ window.onload = function() {
         $values['file_thumb'] = $fp_thumb;
         $values['title'] = $file['name'];
         $values['mimetype'] = $file['type'];
-        $values['parent_id'] = self::$options['parent_id'];
-        $values['reference'] = self::$options['reference'];
+        $values['parent_id'] = $this->options['parent_id'];
+        $values['reference'] = $this->options['reference'];
         $values['abstract'] = html::specialDecode($_POST['abstract']);
         $values['user_id'] = session::getUserId();
         
@@ -649,7 +647,7 @@ window.onload = function() {
             'file_thumb' => PDO::PARAM_LOB,);
         
         $db = new db();
-        $res = $db->insert(self::$fileTable, $values, $bind);
+        $res = $db->insert($this->fileTable, $values, $bind);
         return $res;
     }
     
@@ -659,11 +657,11 @@ window.onload = function() {
      * @param type $width the x factor or width of the image
      * @return type 
      */
-    public static function scaleImage ($image, $thumb, $width){
+    public function scaleImage ($image, $thumb, $width){
         try {
             Image::open($image)->cropResize($width)->save($thumb);
         } catch (Exception $e) {
-            self::$errors[] = $e->getMessage();
+            $this->errors[] = $e->getMessage();
             return false;
         }
         return true;
@@ -679,7 +677,7 @@ window.onload = function() {
     public function validateInsert($mode = false){
         if ($mode != 'update') {
             if (empty($_FILES['files']['name']['0'])){
-                self::$errors[] = lang::translate('No file was specified');
+                $this->errors[] = lang::translate('No file was specified');
             }
         }
     }
@@ -692,7 +690,7 @@ window.onload = function() {
      *
      */
     public function deleteFile($id){
-        $res = q::delete(self::$fileTable)->filter( 'id =', $id)->exec();
+        $res = q::delete($this->fileTable)->filter( 'id =', $id)->exec();
         return $res;
     }
 
@@ -702,8 +700,10 @@ window.onload = function() {
      * @param array $options
      * @return string  
      */
-    public static function subModuleAdminOption ($options){
-        $url = self::$path . "/add?" . http_build_query($options);
+    public function subModuleAdminOption ($options){
+        
+        $i = new self();
+        $url = $i->path . "/add?" . http_build_query($options);
         $extra = null;
         if (isset($options['options'])) {
             $extra = $options['options'];
@@ -713,14 +713,13 @@ window.onload = function() {
 
 
     /**
-     * displays all files from db rows and options
+     * Displays all files from db rows and options
      * @param array $rows
      * @param array $options
      * @return string $html
      */
-    public static function displayFiles($options){
+    public function displayFiles($options){
 
-        
         // get info about all images
         $rows = self::getAllFilesInfo($options);
         
@@ -738,12 +737,12 @@ window.onload = function() {
             $str.= html::createLink($val['image_url'], $title, $link_options);
 
             // edit link
-            $add = self::$path . "/edit/$val[id]?" . $options['query'];
+            $add = $this->path . "/edit/$val[id]?" . $options['query'];
             $str.= MENU_SUB_SEPARATOR_SEC;
             $str.= html::createLink($add, lang::translate('Edit'));
             
             // delete link
-            $delete = self::$path . "/delete/$val[id]?" . $options['query'];
+            $delete = $this->path . "/delete/$val[id]?" . $options['query'];
             $str.= MENU_SUB_SEPARATOR;
             $str.= html::createLink($delete, lang::translate('Delete'));
 
@@ -758,7 +757,7 @@ window.onload = function() {
      * @param array $options
      * @return array $rows array of rows
      */
-    public static function getAllFilesInfo($options){
+    public  function getAllFilesInfo($options){
         $db = new db();
         $search = array (
             'parent_id' => $options['parent_id'],
@@ -766,7 +765,7 @@ window.onload = function() {
         );
 
         $fields = array ('id', 'parent_id', 'title', 'abstract', 'published', 'created');
-        $rows = $db->selectAll(self::$fileTable, $fields, $search, null, null, 'created', false);
+        $rows = $db->selectAll($this->fileTable, $fields, $search, null, null, 'created', false);
         foreach ($rows as $key => $row) {
             $rows[$key]['image_url'] = self::getFullWebPath($row);
         } 
@@ -787,7 +786,7 @@ window.onload = function() {
         );
 
         $fields = array ('id', 'parent_id', 'title', 'figure', 'abstract', 'published', 'created', 'reference');
-        $row = $db->selectOne(self::$fileTable, null, $search, $fields, null, 'created', false);
+        $row = $db->selectOne($this->fileTable, null, $search, $fields, null, 'created', false);
         return $row;
     }
 
@@ -795,9 +794,9 @@ window.onload = function() {
      * method for fetching one full file row
      * @return array $row
      */
-    public static function getFile($id){
+    public  function getFile($id){
         $db = new db();
-        $row = $db->selectOne(self::$fileTable, 'id', $id);
+        $row = $db->selectOne($this->fileTable, 'id', $id);
         return $row;
     }
 
@@ -808,7 +807,7 @@ window.onload = function() {
     public function updateFile() {
 
         $id = uri::fragment(2);
-        $options = self::getOptions();
+        $options = $this->getOptions();
 
         $med_size = self::getMedSize();
         $values = db::prepareToPostArray(array('abstract', 'figure'));
@@ -816,8 +815,8 @@ window.onload = function() {
         
 
         $options = array();
-        $options['maxsize'] = self::$maxsize;
-        $options['allow_mime'] = self::$allowMime;
+        $options['maxsize'] = $this->maxsize;
+        $options['allow_mime'] = $this->allowMime;
         
         // get med size
         $med_size = self::getMedSize();
@@ -829,7 +828,7 @@ window.onload = function() {
             // get fp - will also check for error in upload
             $fp = blob::getFP($file, $options);
             if (!$fp) {
-                self::$errors = blob::$errors;
+                $this->errors = blob::$errors;
                 return false;
             } 
 
@@ -839,7 +838,7 @@ window.onload = function() {
             // now we use the tmp file when scaleing. Only
             // scale if an scaleWidth has been set. 
 
-            self::scaleImage(
+            $this->scaleImage(
                     $file['tmp_name'], 
                     $file['tmp_name'] . "-med", 
                     $med_size);
@@ -847,7 +846,7 @@ window.onload = function() {
             $fp_med = fopen($file['tmp_name'] . "-med", 'rb');
             $values['file'] = $fp_med;
 
-            self::scaleImage(
+            $this->scaleImage(
                     $file['tmp_name'], 
                     $file['tmp_name'] . "-thumb", 
                     conf::getModuleIni('image_scale_width_thumb'));
@@ -856,8 +855,8 @@ window.onload = function() {
             $values['file_thumb'] = $fp_thumb;
             $values['title'] = $file['name'];
             $values['mimetype'] = $file['type'];
-            $values['parent_id'] = self::$options['parent_id'];
-            $values['reference'] = self::$options['reference'];
+            $values['parent_id'] = $this->options['parent_id'];
+            $values['reference'] = $this->options['reference'];
             $values['abstract'] = html::specialDecode($_POST['abstract']);
             $values['figure'] = $_POST['figure'];
             //die;
@@ -871,7 +870,7 @@ window.onload = function() {
 
         }
         $db = new db();
-        $res = $db->update(self::$fileTable, $values, $id, $bind);
+        $res = $db->update($this->fileTable, $values, $id, $bind);
         return $res;
     }
 
@@ -889,16 +888,16 @@ window.onload = function() {
 
         if (isset($_POST['submit'])){
             $this->validateInsert();
-            if (!isset(self::$errors)){
+            if (!isset($this->errors)){
                 $res = $this->insertFiles();
                 if ($res){
                     session::setActionMessage(lang::translate('Image was added'));
                     http::locationHeader($redirect);
                 } else {
-                    html::errors(self::$errors);
+                    html::errors($this->errors);
                 }
             } else {
-                html::errors(self::$errors);
+                html::errors($this->errors);
             }
         }
         echo $this->formInsert('insert');
@@ -915,16 +914,16 @@ window.onload = function() {
             
             $this->validateInsert();
             
-            if (!isset(self::$errors)){
+            if (!isset($this->errors)){
                 $res = $this->insertFiles();
                 if ($res){
                     session::setActionMessage(lang::translate('Image was added'));
                     $this->redirectImageMain($options);
                 } else {
-                    echo html::getErrors(self::$errors);
+                    echo html::getErrors($this->errors);
                 }
             } else {
-                echo html::getErrors(self::$errors);
+                echo html::getErrors($this->errors);
             }
         }
         echo $this->formInsert('insert');
@@ -936,16 +935,16 @@ window.onload = function() {
     public function viewDelete(){
         
         $id = uri::fragment(2);
-        $options = self::getOptions();
+        $options = $this->getOptions();
         if (isset($_POST['submit'])){
-            if (!isset(self::$errors)){
+            if (!isset($this->errors)){
                 $res = self::deleteFile($id);
                 if ($res){
                     session::setActionMessage(lang::translate('Image was deleted'));
                     $this->redirectImageMain($options);
                 }
             } else {
-                html::errors(self::$errors);
+                echo html::getErrors($this->errors);
             }
         }
         echo $this->formDelete();
@@ -978,16 +977,16 @@ window.onload = function() {
         if (isset($_POST['submit'])){
             
             $this->validateInsert('update');
-            if (!isset(self::$errors)){
+            if (!isset($this->errors)){
                 $res = $this->updateFile();
                 if ($res){
                     session::setActionMessage(lang::translate('Image was updated'));
                     $this->redirectImageMain($options);
                 } else {
-                    echo html::getErrors(self::$errors);
+                    echo html::getErrors($this->errors);
                 }
             } else {
-                echo html::getErrors(self::$errors);
+                echo html::getErrors($this->errors);
             }
         }
         echo $this->formUpdate('update', $id);
@@ -997,7 +996,7 @@ window.onload = function() {
      * get a size of image to deliver based on $_GET['size']
      * @return string
      */
-    public static function getImageSize () {
+    public  function getImageSize () {
         $size = null;
         if (!isset($_GET['size'])) {
             $size = 'file';

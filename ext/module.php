@@ -1,35 +1,34 @@
 <?php
 
+namespace modules\image\ext;
+
 use diversen\conf;
 use diversen\db;
-
 use modules\image\module as imageModule;
 
-class image_ext extends imageModule {
+class module extends imageModule {
     /**
      * method for inserting a file into the database
      * (access control is cheched in controller file)
      *
      * @return boolean true on success or false on failure
      */
-    public static function insertFile ($values = null) {
+    public function insertFile ($values = null) {
         $db = new db();
 
-        //$_POST = html::specialDecode($values);
-        //$options['filename'] = 'file';
-        $options['maxsize'] = self::$maxsize;
-        $options['allow_mime'] = self::$allowMime;
+        $options['maxsize'] = $this->maxsize;
+        $options['allow_mime'] = $this->allowMime;
 
         $tmp_file = sys_get_temp_dir() . "/" . uniqid();
         file_put_contents($tmp_file, $values['file_org']);
          
-        self::scaleImage(
+        $this->scaleImage(
                     $tmp_file, 
                     $tmp_file . "-med", 
                     conf::getModuleIni('image_scale_width'));    
         $values['file'] = file_get_contents($tmp_file . "-med");
         
-        self::scaleImage(
+        $this->scaleImage(
                     $tmp_file, 
                     $tmp_file . "-thumb", 
                     conf::getModuleIni('image_scale_width_thumb'));
@@ -39,8 +38,7 @@ class image_ext extends imageModule {
         unlink($tmp_file . "-med"); 
         unlink($tmp_file . "-thumb");
         
-        $res = $db->insert(self::$fileTable, $values);
+        $res = $db->insert($this->fileTable, $values);
         return $res;
-    }
-    
+    }  
 }
