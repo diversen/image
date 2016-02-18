@@ -23,25 +23,44 @@ use Exception;
 use Gregwar\Image\Image;
 
 /**
- * class content files is used for keeping track of file changes
- * in db. Uses object fileUpload
- *
- * @package image
+ * Image module class
  */
 class module {
 
-
     /**
      * Var holding errors
-     * @var type 
+     * @var array 
      */
     public $errors = array();
-    public $maxsize = 2000000; // 2 mb max size
+    
+    /**
+     * Default max size upload in bytes
+     * @var int 
+     */
+    public $maxsize = 2000000;
+    
+    /**
+     * Var holding options
+     * @var array
+     */
     public $options = array();
+    
+    /**
+     * Image base path
+     * @var string
+     */
     public $path = '/image';
+    
+    /**
+     * Image base table
+     * @var string
+     */
     public $fileTable = 'image';
-    public $scaleWidth;
-    public $allow;
+    
+    /**
+     * Default allowed mime-types
+     * @var array
+     */
     public $allowMime = 
         array ('image/gif', 'image/jpeg', 'image/pjpeg', 'image/png');
 
@@ -49,12 +68,9 @@ class module {
      * constructor sets init vars
      */
     public function __construct($options = null) {
-
         moduleloader::includeModule('image');
         $this->options = $options;
-        if (!isset($options['allow'])) {
-            $this->allow = conf::getModuleIni('image_allow_edit');
-        }
+        
     }
 
     /**
@@ -114,31 +130,37 @@ class module {
     }
     
     /**
-     * check access to module based on options and blog ini settings 
-     * @param array $options
-     * @return void
+     * Check access to module based on options and ini settings and action param
+     * @param string $action 'add', 'edit', 'delete'
+     * @return boolean $res true if allowed else false
      */
-    public function checkAccess ($options) {
+    public function checkAccess ($action = 'add') {
         
         // Admin user is allowed
         if (session::isAdmin()) {
             return true;
         }
         
-        // check access
-        if (!session::checkAccessClean($this->allow)) {
+        // Default to allow - e.g. user. 
+        // If 'admin' then only admin users can add images
+        $allow = conf::getModuleIni('image_allow_edit');
+        if (!session::checkAccessClean($allow)) {
             return false;
         }
+        
+        // Options used ['parent_id', 'reference']
+        $options = $this->getOptions();
 
-        // if allow is set to user - this module only allow user to edit his images
-        // to references and parent_ids which he owns
-        if ($this->allow == 'user') {
-            
-            $table = moduleloader::moduleReferenceToTable($options['reference']);
-            if (!admin::tableExists($table)) {
+        // If allow is set to user - this module only allow user to edit the images
+        // he owns - based on 'reference' and 'parent_id'
+        if ($allow == 'user') {
+            echo $options['reference'];
+            // Get table name from reference
+
+            if (!admin::tableExists($options['reference'])) {
                 return false;
             }
-            if (!user::ownID($table, $options['parent_id'], session::getUserId())) {
+            if (!user::ownID($options['reference'], $options['parent_id'], session::getUserId())) {
                 moduleloader::setStatus(403);
                 return false;
             }
@@ -179,20 +201,21 @@ class module {
      */
     public function addAction() {
         
+        // Check for parent module options
         if (!isset($_GET['parent_id'], $_GET['return_url'], $_GET['reference'] )) { 
             moduleloader::setStatus(403);
             return false;
         }
         
-        // get options from QUERY
+        // Get options from QUERY
         $options = $this->getOptions();
-        
-        if (!$this->checkAccess($options)) {
+
+        if (!$this->checkAccess('add')) {
             moduleloader::setStatus(403);
             return false;
         }
-
-        layout::setMenuFromClassPath($options['reference']);
+        
+        // Set headline and return link
         $this->setHeadlineTitle('add');
 
         // display image module content
@@ -210,13 +233,14 @@ class module {
      */
     public function deleteAction() {
         $options = $this->getOptions();
-        if (!$this->checkAccess($options)) {
+        if (!$this->checkAccess('delete')) {
             moduleloader::setStatus(403);
             return;
         }
-
-        layout::setMenuFromClassPath($options['reference']);
+        
+        // Set headline and return link
         $this->setHeadlineTitle('delete');
+        
         $this->init($options);
         $this->viewDelete();
     }
@@ -230,12 +254,12 @@ class module {
         $options = $this->getOptions();
         
         // check access
-        if (!$this->checkAccess($options)) {
+        if (!$this->checkAccess('edit')) {
             moduleloader::setStatus(403);
             return;
         } 
         
-        layout::setMenuFromClassPath($options['reference']);
+        // Set headline and return link
         $this->setHeadlineTitle('edit');
 
         $this->init($options);
@@ -260,8 +284,7 @@ class module {
         if (isset($file['mimetype']) && !empty($file['mimetype'])) {
             header("Content-type: $file[mimetype]");
         }
-        
-        
+
         if (method_exists('modules\image\config', 'checkAccessDownload')) {
             \modules\image\config::checkAccessDownload($file);
         }
@@ -379,7 +402,6 @@ class module {
      */
     public function init ($options = null){
         $this->options = $options;
-        $this->scaleWidth = conf::getModuleIni('image_scale_width');
         $this->path = '/image';
         $this->fileTable = 'image';
         $this->maxsize = conf::getModuleIni('image_max_size');
@@ -448,6 +470,10 @@ class module {
         return $f->getStr();
     }
     
+    /**
+     * Get extra fields from conf
+     * @return array|false $fields
+     */
     public function formFields () {
         $fields = conf::getModuleIni('image_form_fields');
         if ($fields) {
@@ -647,7 +673,7 @@ class module {
     /**
      * Get admin options when operating as a sub module
      * @param array $options
-     * @return string  
+     * @return string $html
      */
     public function subModuleAdminOption ($options){
         
