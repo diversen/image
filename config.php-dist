@@ -2,11 +2,23 @@
 
 namespace modules\image;
 
-use diversen\conf;
-use diversen\session;
-use modules\content\book\module as book;
+/**
+ * Image config class
+ */
 class config {
     
-    public static function checkAccessDownload ($file) {}
+    /**
+     * Check access acording to image parent_id, e.g. a blog post ID
+     * @param int $id parent_id
+     * @return boolean $res
+     */
+    public function checkAccess ($id) {}
+    
+    /**
+     * Check access to download according to image ID
+     * @param int $id image ID
+     * @return boolean $res
+     */
+    public function checkAccessDownload ($id) {}
 
 }
