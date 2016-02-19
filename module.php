@@ -666,7 +666,7 @@ class module {
      * @param array $options
      * @return string $html
      */
-    public function subModuleAdminOption ($options){
+    public static function subModuleAdminOption ($options){
         
         $i = new self();
         $url = $i->path . "/add?" . http_build_query($options);
