@@ -69,8 +69,17 @@ class module {
      */
     public function __construct($options = null) {
         moduleloader::includeModule('image');
-        $this->options = $options;
-        
+        $this->options = $options;  
+    }
+    
+    /**
+     * Test action for getting total blob size of all images 
+     * from a parent_id
+     */
+    public function sizeAction () {
+        $parent = uri::fragment(2);
+        $s = new \modules\image\size();
+        echo $s->getBlobsSizeFromParentId($parent);
     }
 
     /**
