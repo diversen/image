@@ -16,12 +16,15 @@ class size {
      * @return type
      */
     public function getBlobsSizeFromParentId ($parent) {
-        $parent = q::quote($parent);
+        //$parent = q::quote($parent);
         $q = <<<EOF
 SELECT sum(length(file_org) + length(file) + length(file_thumb)) as total_size from image where parent_id = $parent
 EOF;
         $row = q::query($q)->fetchSingle();
-        return $row['total_size'];
+        if(empty(trim($row['total_size']))) {
+            return 0;
+        }
+        return  (int)$row['total_size'];
         
     }
 }
