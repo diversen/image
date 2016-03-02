@@ -5,6 +5,7 @@ $LANG = array();
 // Translation of file modules/image/install.inc
 
 $LANG['Images'] = 'Images';
+
 // Translation of file modules/image/module.php
 
 $LANG['Add images'] = 'Add images';
