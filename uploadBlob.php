@@ -15,7 +15,7 @@ class uploadBlob extends \modules\image\module  {
      * @param array Array ( [name] => Angus_cattle_18.jpg [type] => image/jpeg [tmp_name] => /tmp/php5lPQZT [error] => 0 [size] => 52162 )
      * @return boolean true on success or false on failure
      */
-    public function insertFile ($file, $reference, $parent_id, $user_id) {
+    public function insertFileDirect ($file, $reference, $parent_id, $user_id) {
         
         $options = array();
         $options['maxsize'] = $this->maxsize;
