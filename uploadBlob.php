@@ -20,11 +20,7 @@ class uploadBlob extends \modules\image\module  {
         
         // Load scale widths
         moduleloader::includeModule('image');
-$w = conf::getModuleIni('image_scale_width_thumb');
-var_dump($w);
-
-
-die;        
+        
         $options = array();
         $options['maxsize'] = $this->maxsize;
         $options['allow_mime'] = $this->allowMime;
