@@ -6,6 +6,7 @@ use diversen\conf;
 use diversen\db;
 use diversen\upload\blob;
 use PDO;
+use diversen\moduleloader;
 
 class uploadBlob extends \modules\image\module  {
     /**
@@ -16,6 +17,9 @@ class uploadBlob extends \modules\image\module  {
      * @return boolean true on success or false on failure
      */
     public function insertFileDirect ($file, $reference, $parent_id, $user_id) {
+        
+        // Load scale widths
+        moduleloader::includeModule('image');
         
         $options = array();
         $options['maxsize'] = $this->maxsize;
