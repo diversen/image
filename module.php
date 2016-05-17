@@ -445,7 +445,7 @@ class module {
         
         
         $f = new html();
-        $f->formStartAry(array('id' => 'image_upload_form', 'onsubmit' => "setFormSubmitting()"));
+        $f->formStartAry(array('id' => 'image_upload_form' /*, 'onsubmit' => "setFormSubmitting()" */));
 
         $values = $this->getSingleFileInfo($id);
         $f->init($values, 'submit');
@@ -488,7 +488,7 @@ class module {
     public function formInsert(){
         
         $f = new html();
-        $f->formStartAry(array('id' => 'image_upload_form', 'onsubmit'=>"setFormSubmitting()"));
+        $f->formStartAry(array('id' => 'image_upload_form' /*, 'onsubmit'=>"setFormSubmitting()" */));
 
         $f->init(html::specialEncode($_POST), 'submit');
         $legend = lang::translate('Add images');
@@ -869,7 +869,7 @@ class module {
      */
     public function formDelete () {
         $f = new html();
-        $f->formStartAry(array('id' => 'image_upload_form', 'onsubmit' => "setFormSubmitting()"));
+        $f->formStartAry(array('id' => 'image_upload_form', /* 'onsubmit' => "setFormSubmitting()" */));
         $legend = lang::translate('Delete image');
         $f->legend($legend);
         $f->submit('submit', lang::translate('Delete'));
