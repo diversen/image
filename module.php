@@ -318,6 +318,7 @@ class module {
         
         // Fine tuning of access can be set in image/config.php
         if (method_exists('modules\image\config', 'checkAccessDownload')) {
+            
             $check = new \modules\image\config();
             $res = $check->checkAccessDownload($id);
             
@@ -329,6 +330,7 @@ class module {
         
         // Send file
         $file = $this->getFile($id);
+
         http::cacheHeaders();
         if (isset($file['mimetype']) && !empty($file['mimetype'])) {
             header("Content-type: $file[mimetype]");
