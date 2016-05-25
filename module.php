@@ -242,10 +242,11 @@ class module {
             return false;
         }
         
+        
         // Options ARE sane now
         $options = $this->getOptions();
-        
-        // Set headline and return link
+        layout::setMenuFromClassPath($options['reference']);
+
         $this->setHeadlineTitle('add');
 
         // display image module content
@@ -271,6 +272,7 @@ class module {
         // Options ARE sane now
         $options = $this->getOptions();
         
+        layout::setMenuFromClassPath($options['reference']);
         
         // Set headline and return link
         $this->setHeadlineTitle('delete');
@@ -293,6 +295,8 @@ class module {
         
         // Options ARE sane now
         $options = $this->getOptions();
+        
+        layout::setMenuFromClassPath($options['reference']);
         
         // Set headline and return link
         $this->setHeadlineTitle('edit');
@@ -587,7 +591,7 @@ class module {
 
         // Auto rotate image
         $rotate = new imageRotate();
-        $rotate->fixOrientation($file['tmp_name']);
+        @$rotate->fixOrientation($file['tmp_name']);
         
         // get fp - will also check for error in upload
         $fp = blob::getFP($file, $options);
@@ -706,31 +710,29 @@ class module {
         $rows = $this->getAllFilesInfo($options);
         
         // create string with HTML
-        $str = "";
+        $str = '<ul class="uk-list  uk-list-striped ">';
         foreach ($rows as $val){
+            $str.='<li>';
+
             
-            // generate title
-            $title = lang::translate('Download');
-            $title.= MENU_SUB_SEPARATOR_SEC;
-            $title.= htmlspecialchars($val['title']);
+            $title = htmlspecialchars($val['title']);
             
             // create link to image
             $link_options = array('title' => htmlspecialchars($val['abstract']));
             $str.= html::createLink($val['image_url'], $title, $link_options);
-
-            // edit link
-            $add = $this->path . "/edit/$val[id]?" . $options['query'];
             $str.= MENU_SUB_SEPARATOR_SEC;
-            $str.= html::createLink($add, lang::translate('Edit'));
             
-            // delete link
+            $add = $this->path . "/edit/$val[id]?" . $options['query'];
+            $str.= html::createLink($add, lang::translate('Edit'));
+
             $delete = $this->path . "/delete/$val[id]?" . $options['query'];
             $str.= MENU_SUB_SEPARATOR;
             $str.= html::createLink($delete, lang::translate('Delete'));
 
-            // break
-            $str.= "<br />\n";
+            $str.='</li>';
+
         }
+        $str.= "</ul>";
         echo $str;
     }
     
@@ -830,6 +832,7 @@ class module {
      */
     public function viewInsert($options){
 
+        
         if (isset($_POST['submit'])){
 
             $this->validateInsert();
@@ -840,7 +843,9 @@ class module {
                     session::setActionMessage(lang::translate('Image was added'));
                     $this->redirectImageMain($options);
                 } else {
-                    echo html::getErrors($this->errors);
+                    $error = array_pop($this->errors);
+                    session::setActionMessage($error, 'system_error');
+                    $this->redirectImageMain($options);
                 }
             } else {
                 echo html::getErrors($this->errors);
