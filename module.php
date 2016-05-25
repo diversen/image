@@ -4,10 +4,11 @@ namespace modules\image;
 
 use diversen\conf;
 use diversen\db;
-use diversen\db\q;
 use diversen\db\admin;
+use diversen\db\q;
 use diversen\html;
 use diversen\http;
+use diversen\imageRotate;
 use diversen\lang;
 use diversen\layout;
 use diversen\moduleloader;
@@ -18,9 +19,9 @@ use diversen\template;
 use diversen\upload\blob;
 use diversen\uri;
 use diversen\user;
-use PDO;
 use Exception;
 use Gregwar\Image\Image;
+use PDO;
 
 /**
  * Image module class
@@ -78,7 +79,7 @@ class module {
      */
     public function sizeAction () {
         $parent = uri::fragment(2);
-        $s = new \modules\image\size();
+        $s = new size();
         echo $s->getBlobsSizeFromParentId($parent);
     }
 
@@ -111,7 +112,7 @@ class module {
         
         // Fine tuning of access can be set in image/config.php
         if (method_exists('modules\image\config', 'checkAccess')) {
-            $check = new \modules\image\config();
+            $check = new config();
             if (!$check->checkAccess($parent_id)) {
                 moduleloader::setStatus(403);
                 return false;
@@ -184,7 +185,7 @@ class module {
 
         // Fine tuning of access can be set in image/config.php
         if (method_exists('modules\image\config', 'checkAccess')) {
-            $check = new \modules\image\config();
+            $check = new config();
             return $check->checkAccess($options['parent_id']);
         }
         
@@ -319,7 +320,7 @@ class module {
         // Fine tuning of access can be set in image/config.php
         if (method_exists('modules\image\config', 'checkAccessDownload')) {
             
-            $check = new \modules\image\config();
+            $check = new config();
             $res = $check->checkAccessDownload($id);
             
             if (!$res) {
@@ -583,6 +584,10 @@ class module {
         
         // get med size
         $med_size = conf::getModuleIni('image_scale_width');
+        
+        // var_dump($file['tmp_name']); die;
+        $rotate = new imageRotate();
+        $rotate->fixOrientation($file['tmp_name']);
         
         // get fp - will also check for error in upload
         $fp = blob::getFP($file, $options);
