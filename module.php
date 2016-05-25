@@ -584,8 +584,8 @@ class module {
         
         // get med size
         $med_size = conf::getModuleIni('image_scale_width');
-        
-        // var_dump($file['tmp_name']); die;
+
+        // Auto rotate image
         $rotate = new imageRotate();
         $rotate->fixOrientation($file['tmp_name']);
         
