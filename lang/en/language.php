@@ -19,7 +19,6 @@ $LANG['Title'] = 'Title';
 $LANG['Figure'] = 'Figure';
 $LANG['Add'] = 'Add';
 $LANG['No file was specified'] = 'No file was specified';
-$LANG['Download'] = 'Download';
 $LANG['Edit'] = 'Edit';
 $LANG['Delete'] = 'Delete';
 $LANG['Image was added'] = 'Image was added';

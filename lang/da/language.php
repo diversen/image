@@ -13,7 +13,6 @@ $LANG['Title'] = 'Titel';
 $LANG['Figure'] = 'Figur';
 $LANG['Add'] = 'Tilføj';
 $LANG['No file was specified'] = 'Ingen fil blev uploadet';
-$LANG['Download'] = 'Vis';
 $LANG['Edit'] = 'Ret';
 $LANG['Delete'] = 'Slet';
 $LANG['Image was added'] = 'Billede blev uploadet';
