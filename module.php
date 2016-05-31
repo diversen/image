@@ -412,7 +412,6 @@ class module {
         $this->path = '/image';
         $this->fileTable = 'image';
         $this->maxsize = conf::getModuleIni('image_max_size');
-  
     }
     
     /**
@@ -511,14 +510,28 @@ class module {
         } else {
             $options['multiple'] = "multiple";
         }
+        $options['allowed'] = $this->getAllowedTypes();
+        $f->fileWithLabel('files[]', $bytes, $options);
         
-        $f->fileWithLabel('files[]', $bytes, $options);        
         $f->label('abstract', lang::translate('Title'));
         $f->textareaSmall('abstract');
 
         $f->submit('submit', $submit);
         $f->formEnd();
         return $f->getStr();
+    }
+    
+    /**
+     * Get allowed mime types as a string
+     * @return string
+     */
+    public function getAllowedTypes () {
+        $ary = [];
+        foreach($this->allowMime as $val) {
+            $a = explode('/', $val);
+            $ary[] = $a[1];
+        }
+         return $str = implode(", ", $ary);
     }
     
     /**
