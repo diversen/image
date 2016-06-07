@@ -91,8 +91,11 @@ class module {
      */
     public function deleteAll($parent, $reference) {
         $search = array('parent_id =' => $parent, 'reference =' => $reference);
-        $res = q::delete($this->fileTable)->filterArray($search)->exec();
-        return $res;
+        $rows = q::select($this->fileTable)->filterArray($search)->exec();
+        foreach($rows as $row) {
+            $this->deleteFile($row['id']);
+        }
+        return true;
     }
 
     /**
@@ -683,13 +686,14 @@ class module {
     }
 
     /**
-     * Delete a file
+     * Delete a file both from db and from file system
      * @param   int     $id id of file
      * @return  boolean $res true on success and false on failure
-     *
      */
     public function deleteFile($id){
         $res = q::delete($this->fileTable)->filter( 'id =', $id)->exec();
+        $dir = conf::getFullFilesPath() . "/images/$id";
+        \diversen\file::rrmdir($dir);
         return $res;
     }
 
