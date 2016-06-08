@@ -91,7 +91,7 @@ class module {
      */
     public function deleteAll($parent, $reference) {
         $search = array('parent_id =' => $parent, 'reference =' => $reference);
-        $rows = q::select($this->fileTable)->filterArray($search)->exec();
+        $rows = q::select($this->fileTable)->filterArray($search)->fetch();
         foreach($rows as $row) {
             $this->deleteFile($row['id']);
         }
@@ -818,8 +818,10 @@ class module {
         }
 
         if (isset($_POST['submit'])){
+            
             $this->validateInsert();
-            if (!isset($this->errors)){
+            if (empty($this->errors)){
+                
                 $res = $this->insertFiles();
                 if ($res){
                     session::setActionMessage(lang::translate('Image was added'));
@@ -829,6 +831,7 @@ class module {
                 }
             } else {
                 echo html::getErrors($this->errors);
+                
             }
         }
         echo $this->formInsert('insert');

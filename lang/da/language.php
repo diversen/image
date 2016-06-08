@@ -7,6 +7,7 @@ $LANG['Add images'] = 'Tilføj billeder';
 $LANG['Edit image'] = 'Rediger billede';
 $LANG['Delete image'] = 'Slet billede';
 $LANG['Go back'] = 'Gå tilbage';
+$LANG['Access forbidden!'] = 'Adgang forbudt!';
 $LANG['Image deleted'] = 'Billede blev slettet';
 $LANG['Update'] = 'Opdater';
 $LANG['Title'] = 'Titel';

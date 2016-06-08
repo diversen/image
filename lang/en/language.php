@@ -12,6 +12,7 @@ $LANG['Add images'] = 'Add images';
 $LANG['Edit image'] = 'Edit image';
 $LANG['Delete image'] = 'Delete image';
 $LANG['Go back'] = 'Go back';
+$LANG['Access forbidden!'] = 'Access forbidden!';
 $LANG['Images'] = 'Images';
 $LANG['Image deleted'] = 'Image deleted';
 $LANG['Update'] = 'Update';
