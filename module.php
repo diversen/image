@@ -331,7 +331,8 @@ class module {
             $res = $check->checkAccessDownload($id);
             
             if (!$res) {
-                $this->sendBlankImage();
+                header('HTTP/1.0 403 Forbidden');
+                echo lang::translate('Access forbidden!');
                 die();
             }
         }
@@ -346,16 +347,6 @@ class module {
         
         echo $file[$size];
         die;
-    }
-    
-    /**
-     * Send a blank image if user is not allwed to see the real image
-     */
-    public function sendBlankImage () {
-        http::cacheHeaders();
-        header("Content-type: image/gif");
-        $blank = conf::pathModules() . "/image/assets/blank.gif";
-        readfile($blank); 
     }
     
     /**
