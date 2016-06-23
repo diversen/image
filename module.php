@@ -69,7 +69,7 @@ class module {
      * constructor sets init vars
      */
     public function __construct($options = null) {
-        moduleloader::includeModule('image');
+        
         $this->options = $options;  
     }
     
@@ -114,9 +114,9 @@ class module {
         $parent_id = $_GET['parent_id'];
         
         // Fine tuning of access can be set in image/config.php
-        if (method_exists('modules\image\config', 'checkAccess')) {
+        if (method_exists('modules\image\config', 'checkAccessParentId')) {
             $check = new config();
-            if (!$check->checkAccess($parent_id)) {
+            if (!$check->checkAccessParentId($parent_id, 'view')) {
                 moduleloader::setStatus(403);
                 return false;
             }
@@ -163,13 +163,14 @@ class module {
     
     /**
      * Check access to module based on options and ini settings and action param
-     * @param string $action 'add', 'edit', 'delete' (NOT used yet)
+     * @param string $action 'view' or 'edit'
      * @return boolean $res true if allowed else false
      */
-    public function checkAccess ($action = 'add') {
+    public function checkAccess ($action = 'view') {
         
         // Options used ['parent_id', 'reference']
         $options = $this->getOptions();
+
         if (!$options) {
             return false;
         }
@@ -187,23 +188,12 @@ class module {
         }
 
         // Fine tuning of access can be set in image/config.php
-        if (method_exists('modules\image\config', 'checkAccess')) {
+        if (method_exists('\modules\image\config', 'checkAccessParentId')) {
             $check = new config();
-            return $check->checkAccess($options['parent_id']);
+            return $check->checkAccessParentId($options['parent_id'], $action);
         }
         
-        
-        // If allow is set to user - this module only allow user to edit the images
-        // he owns - based on 'reference' and 'parent_id'
-        if ($allow == 'user') {
-            if (!admin::tableExists($options['reference'])) {
-                return false;
-            }
-            if (!user::ownID($options['reference'], $options['parent_id'], session::getUserId())) {
-                return false;
-            }
-        }
-        return true;
+        return false;
     }
     
     /**
@@ -240,7 +230,7 @@ class module {
     public function addAction() {
 
         // Check access
-        if (!$this->checkAccess()) {
+        if (!$this->checkAccess('edit')) {
             moduleloader::setStatus(403);
             return false;
         }
@@ -267,7 +257,7 @@ class module {
      */
     public function deleteAction() {
         // Check access
-        if (!$this->checkAccess()) {
+        if (!$this->checkAccess('edit')) {
             moduleloader::setStatus(403);
             return false;
         }
@@ -291,7 +281,7 @@ class module {
      */
     public function editAction() {
         // Check access
-        if (!$this->checkAccess()) {
+        if (!$this->checkAccess('edit')) {
             moduleloader::setStatus(403);
             return false;
         }
@@ -325,10 +315,10 @@ class module {
         }
         
         // Fine tuning of access can be set in image/config.php
-        if (method_exists('modules\image\config', 'checkAccessDownload')) {
+        if (method_exists('\modules\image\config', 'checkAccessId')) {
             
             $check = new config();
-            $res = $check->checkAccessDownload($id);
+            $res = $check->checkAccessId($id, 'view');
             
             if (!$res) {
                 header('HTTP/1.0 403 Forbidden');
