@@ -4,7 +4,6 @@ namespace modules\image;
 
 use diversen\conf;
 use diversen\db;
-use diversen\db\admin;
 use diversen\db\q;
 use diversen\html;
 use diversen\http;
@@ -79,6 +78,10 @@ class module {
      */
     public function sizeAction () {
         $parent = uri::fragment(2);
+	if (!$parent) {
+            moduleloader::setStatus(404);
+	    return;
+	}
         $s = new size();
         echo $s->getBlobsSizeFromParentId($parent);
     }

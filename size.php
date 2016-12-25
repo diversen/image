@@ -2,6 +2,7 @@
 
 namespace modules\image;
 
+use diversen\db\connect;
 use diversen\db\q;
 
 /**
@@ -16,7 +17,12 @@ class size {
      * @return type
      */
     public function getBlobsSizeFromParentId ($parent) {
-        //$parent = q::quote($parent);
+        
+        if (!$parent) {
+            return 0;
+        }
+        
+        $parent = connect::quote($parent);
         $q = <<<EOF
 SELECT sum(length(file_org) + length(file) + length(file_thumb)) as total_size from image where parent_id = $parent
 EOF;
