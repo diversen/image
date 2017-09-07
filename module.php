@@ -591,7 +591,7 @@ class module {
         // get med size
         $med_size = conf::getModuleIni('image_scale_width');
         
-        if (file::getSecMime($file['type'] == 'jpeg') || file::getSecMime($file['type'] == 'pjpeg') ) {
+        if (isset($file['type']) && file::getSecMime($file['type'] == 'jpeg') || file::getSecMime($file['type'] == 'pjpeg') ) {
         
             $rotate = new imageRotate();
             $rotate->fixOrientation($file['tmp_name']);
