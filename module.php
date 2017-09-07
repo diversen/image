@@ -18,6 +18,7 @@ use diversen\template;
 use diversen\upload\blob;
 use diversen\uri;
 use diversen\user;
+use diversen\file;
 use Exception;
 use Gregwar\Image\Image;
 use PDO;
@@ -581,17 +582,20 @@ class module {
      * @return boolean $res
      */
     public function insertFile ($file) {
-
+        
+        
         $options = array();
         $options['maxsize'] = $this->maxsize;
         $options['allow_mime'] = $this->allowMime;
         
         // get med size
         $med_size = conf::getModuleIni('image_scale_width');
-
-        // Auto rotate image
-        $rotate = new imageRotate();
-        @$rotate->fixOrientation($file['tmp_name']);
+        
+        if (file::getSecMime($file['type'] == 'jpeg') || file::getSecMime($file['type'] == 'pjpeg') ) {
+        
+            $rotate = new imageRotate();
+            $rotate->fixOrientation($file['tmp_name']);
+        }
         
         // get fp - will also check for error in upload
         $fp = blob::getFP($file, $options);
